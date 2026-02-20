@@ -221,6 +221,10 @@ If another party risks falling below the threshold in a non-negligible number of
 
 ## Task 3 — What are possible coalitions?
 
+- Exclude any majority constellation that includes AfD (no “Union + AfD”, etc.).
+
+- Exclude any coalition option that combines Union + LINKE (no “Union + LINKE”, including 3-party and 4-party coalitions containing both).
+
 (Number of scenarios in which coalition X is capable of securing a majority)
 
 Start with the coalition or single party that either  

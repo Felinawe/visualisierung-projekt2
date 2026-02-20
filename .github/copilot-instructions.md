@@ -461,6 +461,7 @@ Core rule:
 - Prioritize clarity and interpretability over technical precision in visible UI text.
 - Prioritize clarity and interpretability over technical precision in visible UI text.
 - Tone: precise, neutral, concise.
+- Remove visible task labeling / prototype framing (news-ready). The visible UI must no longer show prototype-like tab/task navigation.
 
 The visible interface must NOT:
 
