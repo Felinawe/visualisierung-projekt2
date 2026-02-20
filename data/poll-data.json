@@ -1,0 +1,13 @@
+{
+  "election_year": 2025,
+  "timestamp": "2026-02-19",
+  "data": [
+    { "party": "spd", "avg": 14.888, "ci_lower": 13.117, "ci_upper": 16.659, "prev_result": 16.413, "diff": -1.525 },
+    { "party": "cxu", "avg": 25.411, "ci_lower": 23.257, "ci_upper": 27.565, "prev_result": 28.521, "diff": -3.11 },
+    { "party": "gru", "avg": 11.979, "ci_lower": 10.367, "ci_upper": 13.591, "prev_result": 11.606, "diff": 0.373 },
+    { "party": "fdp", "avg": 3.208, "ci_lower": 2.332, "ci_upper": 4.084, "prev_result": 4.328, "diff": -1.12 },
+    { "party": "afd", "avg": 24.779, "ci_lower": 22.639, "ci_upper": 26.919, "prev_result": 20.803, "diff": 3.976 },
+    { "party": "lin", "avg": 10.34, "ci_lower": 8.825, "ci_upper": 11.855, "prev_result": 8.775, "diff": 1.565 },
+    { "party": "bsw", "avg": 3.106, "ci_lower": 2.256, "ci_upper": 3.956, "prev_result": 4.981, "diff": -1.875 }
+  ]
+}
