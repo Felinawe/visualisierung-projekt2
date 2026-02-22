@@ -3,39 +3,534 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>D3 Visualization - Stable Version</title>
+    <title>Bundestagswahl-Szenarien</title>
     <style>
+      :root {
+        --space-outer: 24px;
+        --space-section: 20px;
+        --space-block: 16px;
+        --space-panel-gap: 32px;
+        --radius-lg: 12px;
+        --radius-md: 10px;
+        --radius-sm: 8px;
+        --font-ui:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        --font-title: var(--font-ui);
+        --font-body: var(--font-ui);
+        --font-weight-body: 400;
+        --font-weight-label: 500;
+        --font-weight-title: 680;
+        --font-weight-h2: 620;
+        --letterspacing-title: -0.01em;
+        --letterspacing-ui: 0;
+        --lineheight-body: 1.52;
+        --lineheight-title: 1.2;
+        --bg-page: #f4f5f7;
+        --bg-surface: #ffffff;
+        --bg-soft: #f9fafb;
+        --bg-highlight: #fffef7;
+        --border-soft: #e5e7eb;
+        --border-strong: #d1d5db;
+        --text-main: #1f2937;
+        --text-muted: #4b5563;
+        --text-strong: #111827;
+        --text-subtle: #374151;
+        --btn-hover: #f3f4f6;
+        --btn-active-bg: #111827;
+        --btn-active-text: #ffffff;
+        --card-hover-stroke: #6b7280;
+        --shadow-highlight: rgba(17, 24, 39, 0.25);
+        --hover-shadow: rgba(17, 24, 39, 0.12);
+      }
+
+      #visualization.visual-style-standard {
+        --font-ui:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+
+      #visualization.visual-style-calm-serif {
+        --font-ui: "Source Serif 4", "Georgia", "Times New Roman", serif;
+        --font-title: "Source Serif 4", "Georgia", "Times New Roman", serif;
+        --font-body: "Source Serif 4", "Georgia", "Times New Roman", serif;
+        --font-weight-body: 420;
+        --font-weight-label: 560;
+        --font-weight-title: 640;
+        --font-weight-h2: 630;
+        --letterspacing-title: -0.012em;
+        --letterspacing-ui: 0.004em;
+        --lineheight-body: 1.62;
+        --lineheight-title: 1.22;
+        --bg-surface: #ffffff;
+        --bg-soft: #fafbfc;
+        --bg-highlight: #fffef9;
+        --border-soft: #e4e7eb;
+        --border-strong: #d2d8df;
+        --text-main: #1f2835;
+        --text-muted: #4f5b6b;
+        --text-strong: #111827;
+        --text-subtle: #374151;
+        --btn-hover: #f4f6f8;
+        --btn-active-bg: #27364a;
+        --btn-active-text: #ffffff;
+        --card-hover-stroke: #667588;
+        --shadow-highlight: rgba(17, 24, 39, 0.22);
+        --hover-shadow: rgba(17, 24, 39, 0.13);
+      }
+
+      #visualization.visual-style-clear-sans {
+        --font-ui:
+          "Inter", "Avenir Next", "Segoe UI", "Helvetica Neue", Arial,
+          sans-serif;
+        --font-title:
+          "Inter", "Avenir Next", "Segoe UI", "Helvetica Neue", Arial,
+          sans-serif;
+        --font-body:
+          "Inter", "Avenir Next", "Segoe UI", "Helvetica Neue", Arial,
+          sans-serif;
+        --font-weight-body: 420;
+        --font-weight-label: 580;
+        --font-weight-title: 700;
+        --font-weight-h2: 660;
+        --letterspacing-title: -0.016em;
+        --letterspacing-ui: 0.003em;
+        --lineheight-body: 1.54;
+        --lineheight-title: 1.16;
+        --bg-surface: #ffffff;
+        --bg-soft: #f8fafc;
+        --bg-highlight: #f6f9ff;
+        --border-soft: #dbe2ea;
+        --border-strong: #c3ceda;
+        --text-main: #1b2533;
+        --text-muted: #4a596d;
+        --text-strong: #0f1826;
+        --text-subtle: #334256;
+        --btn-hover: #edf3fa;
+        --btn-active-bg: #1c2f4a;
+        --btn-active-text: #f8fbff;
+        --card-hover-stroke: #60748d;
+        --shadow-highlight: rgba(15, 24, 38, 0.22);
+        --hover-shadow: rgba(15, 24, 38, 0.13);
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
+
       body {
         font-family:
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           "Helvetica Neue", Arial, sans-serif;
-        background-color: #f5f5f5;
-        padding: 20px;
+        font-weight: 400;
+        line-height: 1.52;
+        background-color: #f4f5f7;
+        color: #1f2937;
+        padding: var(--space-outer);
       }
-      #visualization {
+
+      .page-layout {
         max-width: 1200px;
         margin: 0 auto;
-        background-color: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
-      h1 {
-        font-size: 24px;
-        margin-bottom: 20px;
-        color: #333;
+
+      #visualization {
+        position: relative;
+        background-color: var(--bg-surface);
+        padding: var(--space-outer);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-soft);
+      }
+
+      .header {
+        margin-bottom: var(--space-section);
+      }
+
+      .title {
+        font-size: 28px;
+        line-height: var(--lineheight-title);
+        margin-bottom: 8px;
+        font-family: var(--font-title);
+        font-weight: var(--font-weight-title);
+        letter-spacing: var(--letterspacing-title);
+      }
+
+      .subtitle {
+        color: var(--text-muted);
+        max-width: 76ch;
+      }
+
+      .control-area {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 0 0 var(--space-block);
+      }
+
+      .control-area.layout-standard {
+        grid-template-columns: 1fr;
+      }
+
+      .task-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0;
+      }
+
+      .task-btn {
+        border: 1px solid var(--border-strong);
+        background: var(--bg-surface);
+        color: var(--text-subtle);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 14px;
+        font-weight: var(--font-weight-label);
+        letter-spacing: var(--letterspacing-ui);
+        cursor: pointer;
+        transition: background-color 0.12s ease;
+      }
+
+      .task-btn:hover {
+        background: var(--btn-hover);
+      }
+
+      .task-btn.active {
+        background: var(--btn-active-bg);
+        border-color: var(--btn-active-bg);
+        color: var(--btn-active-text);
+      }
+
+      .sub-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-end;
+      }
+
+      .control-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .control-field label {
+        color: var(--text-subtle);
+        font-size: 14px;
+        font-weight: var(--font-weight-label);
+        letter-spacing: var(--letterspacing-ui);
+      }
+
+      .control-field select {
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-sm);
+        padding: 6px 10px;
+        font-size: 14px;
+        background: var(--bg-surface);
+        color: var(--text-main);
+        min-width: 160px;
+        max-width: 280px;
+      }
+
+      .control-field.control-context {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-sm);
+        background: var(--bg-soft);
+        padding: 8px;
+      }
+
+      .control-context-subtitle {
+        color: var(--text-muted);
+        font-size: 12px;
+        line-height: 1.3;
+      }
+
+      .control-field.control-scenario {
+        min-width: 180px;
+      }
+
+      .control-area.layout-perspective-bridge {
+        grid-template-columns: 1fr;
+      }
+
+      .control-area.layout-perspective-bridge .sub-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+      }
+
+      .control-area.layout-perspective-bridge .control-field.control-context {
+        order: 1;
+      }
+
+      .control-area.layout-perspective-bridge .control-field.control-scenario {
+        order: 2;
+        justify-self: end;
+        opacity: 0.88;
+      }
+
+      .control-area.layout-perspective-bridge:not(.has-context-control)
+        .sub-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .control-area.layout-perspective-bridge:not(.has-context-control)
+        .control-field.control-scenario {
+        justify-self: start;
+        opacity: 1;
+      }
+
+      .control-area.layout-split-emphasis {
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+        column-gap: 14px;
+        row-gap: 10px;
+        align-items: start;
+      }
+
+      .control-area.layout-split-emphasis .task-nav {
+        grid-column: 1;
+      }
+
+      .control-area.layout-split-emphasis .sub-controls {
+        grid-column: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .control-area.layout-split-emphasis .control-field.control-context {
+        order: 1;
+      }
+
+      .control-area.layout-split-emphasis .control-field.control-scenario {
+        order: 2;
+        border-top: 1px solid var(--border-soft);
+        padding-top: 8px;
+        opacity: 0.86;
+      }
+
+      .control-area.layout-split-emphasis:not(.has-context-control) {
+        grid-template-columns: 1fr;
+      }
+
+      .control-area.layout-split-emphasis:not(.has-context-control)
+        .sub-controls {
+        grid-column: 1;
+        flex-direction: row;
+      }
+
+      #summary {
+        border: 1px solid var(--border-soft);
+        background: var(--bg-soft);
+        border-radius: var(--radius-md);
+        padding: 14px;
+        margin-bottom: var(--space-block);
+      }
+
+      #summary h2 {
+        font-size: 18px;
+        margin-bottom: 6px;
+        font-family: var(--font-title);
+        font-weight: var(--font-weight-h2);
+        letter-spacing: var(--letterspacing-ui);
+      }
+
+      #summary p {
+        color: var(--text-subtle);
+      }
+
+      #landscape {
+        border: 1px solid var(--border-soft);
+        border-radius: var(--radius-md);
+        padding: 12px;
+        background: var(--bg-surface);
+        max-height: 74vh;
+        overflow: auto;
+      }
+
+      .chart-card {
+        fill: var(--bg-surface);
+        stroke: var(--border-strong);
+        stroke-width: 1;
+      }
+
+      .chart-card.highlight {
+        stroke: var(--text-strong);
+        stroke-width: 2;
+        fill: var(--bg-highlight);
+      }
+
+      .card-group.highlighted {
+        filter: drop-shadow(0 2px 6px var(--shadow-highlight));
+      }
+
+      .card-group:hover .chart-card {
+        stroke: var(--card-hover-stroke);
+      }
+
+      .card-group:hover .chart-card.highlight {
+        stroke: var(--text-strong);
+      }
+
+      .card-label {
+        font-size: 10px;
+        fill: var(--text-subtle);
+      }
+
+      .card-rank {
+        font-size: 10px;
+        fill: var(--text-muted);
+      }
+
+      .band-title {
+        font-size: 12px;
+        font-weight: var(--font-weight-label);
+        letter-spacing: var(--letterspacing-ui);
+        fill: var(--text-subtle);
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        margin-top: var(--space-block);
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--text-subtle);
+        font-size: 12px;
+        letter-spacing: var(--letterspacing-ui);
+      }
+
+      .legend-color {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      .scenario-hover-panel {
+        position: absolute;
+        min-width: 220px;
+        max-width: 280px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-sm);
+        padding: 10px;
+        box-shadow: 0 10px 20px var(--hover-shadow);
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(4px);
+        transition:
+          opacity 0.12s ease,
+          transform 0.12s ease;
+        z-index: 5;
+      }
+
+      .scenario-hover-panel.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .scenario-hover-title {
+        font-size: 12px;
+        font-weight: var(--font-weight-label);
+        color: var(--text-strong);
+        margin-bottom: 8px;
+      }
+
+      .scenario-hover-seats {
+        display: grid;
+        gap: 4px;
+      }
+
+      .scenario-hover-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--text-subtle);
+      }
+
+      .scenario-hover-party {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .scenario-hover-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        display: inline-block;
+      }
+
+      .scenario-hover-value {
+        color: var(--text-strong);
+        font-weight: 600;
+      }
+
+      @media (max-width: 720px) {
+        body {
+          padding: 16px;
+        }
+
+        #visualization {
+          padding: 16px;
+        }
+
+        .title {
+          font-size: 24px;
+        }
+
+        .control-area.layout-perspective-bridge .sub-controls,
+        .control-area.layout-split-emphasis,
+        .control-area.layout-split-emphasis .sub-controls {
+          grid-template-columns: 1fr;
+          flex-direction: column;
+        }
+
+        .control-area.layout-perspective-bridge .control-field.control-scenario,
+        .control-area.layout-split-emphasis .control-field.control-scenario {
+          justify-self: start;
+          opacity: 1;
+        }
+
+        .control-area.layout-split-emphasis .control-field.control-scenario {
+          border-top: 0;
+          padding-top: 0;
+        }
       }
     </style>
   </head>
   <body>
-    <div id="visualization">
-      <h1>D3 Visualization - Stable Version</h1>
-      <p>Visualization content will be rendered here.</p>
+    <div class="page-layout">
+      <div id="visualization" aria-label="Visualisierungsbereich" role="region">
+        <header class="header">
+          <h1 class="title">Bundestagswahl-Simulator: mögliche Wahlausgänge</h1>
+          <p class="subtitle">
+            Jede Kachel zeigt ein mögliches Ergebnis. Alle Kacheln bleiben
+            gleich aufgebaut – die Perspektive ordnet nur neu, damit politische
+            Fragen schneller beantwortet werden können.
+          </p>
+        </header>
+
+        <section
+          class="control-area layout-perspective-bridge"
+          id="control-area"
+        >
+          <nav class="task-nav" id="task-nav"></nav>
+          <section class="sub-controls" id="sub-controls"></section>
+        </section>
+        <section id="summary"></section>
+        <section id="landscape"></section>
+        <section class="legend" id="legend"></section>
+      </div>
     </div>
     <script type="module" src="./src/main-stable.js"></script>
   </body>

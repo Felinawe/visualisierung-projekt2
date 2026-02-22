@@ -164,12 +164,12 @@ const state = {
   frequencyOrderedScenarios: [],
   parties: [],
   variants: {
-    layoutStructure: "standard",
-    controlAreaLayout: "standard",
+    layoutStructure: "adaptive-grid",
+    controlAreaLayout: "perspective-bridge",
     probabilityLayout: "standard",
-    groupingDisplay: "standard",
+    groupingDisplay: "segmented-bands",
     microchartDisplay: "standard",
-    editorialStyle: "standard",
+    editorialStyle: "calm-serif",
   },
 };
 

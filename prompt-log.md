@@ -1014,4 +1014,271 @@ Keep all layout, structure, and logic unchanged. The result should feel like a r
 
 ---
 
+### 19) Style Transfer – Variantenübernahme Test nach Stable
+
+**Model:** GPT-5.3-Codex
+
+**Request:** <attachment id="prompt:Style Transfer.prompt.md" filePath="/Users/felina/Documents/Master HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Style Transfer.prompt.md">
+Prompt instructions file:
+
+-
+
+Follow `copilot-instructions.md` (binding), especially:
+
+- Stable vs Test Environment (ARCHITECTURE RULE)
+- Two-Layer Principle (TEST ENVIRONMENT)
+- Test Variant System (UI REQUIREMENT – MANDATORY)
+- Variant Panel Convention (BINDING)
+- Reference Model (Binding Clarification)
+
+---
+
+## Goal
+
+Transfer selected test variants into Stable so that:
+
+- Stable reflects the chosen configuration by default.
+- Stable contains NO variant UI.
+- Test remains configurable.
+- Test entry view opens with the same configuration preselected.
+
+---
+
+## Important Principles
+
+- Stable must contain no variant UI.
+- Stable must not require manual activation of modes.
+- Stable becomes a clean preset.
+- No redesign.
+- No reimplementation.
+- Only reuse existing working test logic.
+- Maintain strict separation between:
+  - Panel logic (test-only)
+  - Visualization logic (transferable)
+
+---
+
+# Strict Workflow (Must Follow)
+
+# Pre-Step — Variant Inventory
+
+## 0.1 Inventory
+
+Inspect:
+
+- `index-test.html` + `main-test.js`
+- `index-stable.html` + `main-stable.js`
+
+List all variant panels exactly as defined in Test.
+
+Each panel must follow:
+
+- First option = Standard (Start behavior)
+- Radio-only logic
+- One panel = one decision dimension
+
+---
+
+## 0.2 Generate Delta Checklist (Start vs Stable)
+
+For each panel:
+
+1. . Determine what Stable currently does.
+2. Determine which Test option corresponds to Stable behavior.
+
+Now generate a radio checklist that mirrors the Test panels 1:1.
+
+Rules:
+
+- First option = ( ) Standard — describe Start behavior.
+- If Stable already differs from Start and matches a Test alternative:
+  - Preselect that alternative.
+- If Stable still equals Start:
+  - Standard remains selected.
+
+Format:
+
+**<Panel Title>**
+
+- ( ) Standard — <Start behavior>
+- ( ) <Alternative A> — <description>
+- ( ) <Alternative B> — <description>
+
+Then:
+
+- Mark (•) for the option that reflects current Stable behavior.
+
+This checklist must:
+
+- Reflect Test panel structure exactly.
+- Not redefine Standard.
+
+---
+
+## 0.3 User Decision (Chat-Based Radio Tick)
+
+Ask the user to:
+
+- Copy the checklist.
+- Change only the (•) markers.
+- Return the updated selection.
+
+Clarify:
+
+The selection defines:
+
+- What will be hardcoded in Stable.
+- What will be preselected in Test entry view.
+
+No implicit assumptions.
+Wait for explicit confirmation.
+
+---
+
+# Step 1 — Mapping (NO Code Changes)
+
+After user selection:
+
+1. Identify which Test code paths produce the selected configuration.
+2. Identify which logic is UI-only (must stay in Test).
+3. Identify what must be removed from Stable.
+4. Identify what must be transferred.
+5. Identify what must be hardcoded in Stable.
+6. Identify what must be adjusted in Test to set the new default selection.
+
+Propose a clear replacement plan.
+
+Stop and ask for confirmation.
+
+---
+
+# Step 2 — Implementation
+
+After approval:
+
+## Stable
+
+- Remove obsolete logic.
+- Apply selected configuration.
+- Hardcode selected behavior.
+- Ensure no variant UI appears.
+
+## Test
+
+- Keep full variant system intact.
+- Adjust entry state so selected configuration is preselected.
+- Do NOT remove alternatives.
+- Do NOT mix panel logic with visualization logic.
+
+---
+
+# Step 3 — Definition of Done
+
+Confirm:
+
+- Stable contains no variant UI.
+- Stable reflects selected configuration exactly.
+- Test entry view preselects the same configuration.
+- No legacy or duplicated logic remains.
+- Visualization renders correctly.
+- Interactions still function.
+- Layout separation between panel and visualization is intact.
+
+Stop and ask for confirmation.
+
+</attachment>
+Follow instructions in [Style Transfer.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Style%20Transfer.prompt.md).
+
+**Action:**
+
+- 🔄 Pre-Step 0.1 abgeschlossen: Varianteninventur aus Test-Dateien (`index-test.html`, `src/main-test.js`) und Ist-Stand in Stable (`index-stable.html`, `src/main-stable.js`) erhoben.
+- 🔄 Pre-Step 0.2 vorbereitet: Delta-Checkliste Start vs Stable je Test-Panel erstellt (mit Standard als Start-Referenz).
+- ✅ Pre-Step 0.3 erhalten (verbatim Nutzerauswahl):
+
+```text
+Layoutstruktur
+( ) Standard — Feste Rasterstruktur mit 10 Spalten wie in Start.
+(•) Adaptives Raster — Spaltenzahl passt sich der verfügbaren Breite an.
+
+Steuerbereich-Struktur
+( ) Standard — Perspektivennavigation und Auswahl in linearer Folge.
+(•) Perspektive + Fokusblock — Fokusauswahl direkt an Perspektive, Szenarien nachgeordnet.
+( ) Geteilte Steuerfläche — Navigation links, Auswahlblock rechts.
+
+Häufigkeitsanordnung
+(•) Standard — Sortierung folgt der aktiven Perspektive.
+( ) Häufigkeit: Zentrum — Häufige Sitzbilder im Zentrum, seltene außen.
+( ) Häufigkeit: Zonen — Häufige/mittlere/seltene Sitzbilder in getrennten Zonen.
+
+Gruppendarstellung
+( ) Standard — Ein durchgehendes Szenariofeld.
+(•) Segmentierte Bänder — Fokusgruppe und übrige Szenarien getrennt.
+
+Mikrochart-Darstellung
+(•) Standard — Horizontale Balken-Mikrocharts wie in Start.
+( ) Kompakte Icons — Kreisförmige Icons im Kartenrahmen.
+( ) Nur Kreis-Marker — Kompakte Marker ohne Kartenrahmen.
+
+Typografie & Farbklima
+( ) Standard — Start-Basis für Schriftbild und Grundfarben.
+(• ) Redaktionell Serif — Serifenton mit ruhigerem Lesefluss.
+( ) Redaktionell Sans — Klarer Sans-Stil mit präziser Gewichtung.
+```
+
+- ✅ Step 1 freigegeben durch Nutzerantwort (verbatim): `yes accept`.
+- ✅ Step 2 umgesetzt (Stable):
+  - `index-stable.html`: Test-Variantensystem entfernt, Script auf `./src/main-stable.js` gesetzt.
+  - `src/main-stable.js`: ausgewählte Konfiguration als feste Stable-Vorgabe gesetzt (`adaptive-grid`, `perspective-bridge`, `standard`, `segmented-bands`, `standard`, `calm-serif`), Variant-Panel-Rendering entfernt.
+- ✅ Step 2 umgesetzt (Test):
+  - `src/main-test.js`: Entry-Default der Variant-Auswahl auf dieselbe Konfiguration gesetzt; alle Optionen bleiben erhalten.
+- ✅ Pflichtchecks durchgeführt:
+  - Fehlerprüfung auf geänderten Dateien ohne Befund.
+  - Stable/Test-Trennung geprüft: keine Variant-UI in Stable-Markup, Test-Panel weiterhin klar als Top-Bereich getrennt.
+  - Changelog auf `0.3.11` (PATCH) aktualisiert.
+- ✅ Step 3 bestätigt durch Nutzerantwort (verbatim): `continue`.
+- ✅ Definition of Done erfüllt und Workflow abgeschlossen.
+
+**Status:** ✅ Completed
+
+---
+
+### 20) Stable-Version rendert nicht (Debug)
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Stable version is not rendered. Look at pasted picture
+
+**Action:**
+
+- ✅ Ist-Stand geprüft: `index-stable.html` und `src/main-stable.js` enthalten die vollständige Stable-Visualisierung (kein Platzhaltertext im Dateisystem).
+- ✅ Lokale Auslieferung verifiziert: `http://127.0.0.1:8008/index-stable.html` liefert und rendert die Visualisierung inkl. Datenabruf (`/data/poll-data.json` → HTTP 200).
+- ✅ Ursache eingegrenzt: Das im Screenshot gezeigte Platzhalter-Layout stammt nicht aus dem aktuellen Workspace-Stand (wahrscheinlich veralteter Tab/Cache/falsche URL).
+- ✅ Keine Codeänderung erforderlich; nur Diagnostik und Verifikation durchgeführt.
+
+**Status:** ✅ Completed
+
+---
+
+### 21) Live Preview auf Stable-Datei ausrichten
+
+**Model:** GPT-5.3-Codex
+
+**Request:** It is rendered in: http://127.0.0.1:8008/index-stable.html but not if i open live preview - look at pasted picture
+
+Please fix - I want to see changes in live preview of index-stable.html as well
+
+**Action:**
+
+- ✅ Unterschied zwischen Servern verifiziert: `127.0.0.1:8008` zeigt aktuelle Stable-Visualisierung, Live Preview (`127.0.0.1:3000`) lieferte weiterhin eine veraltete HTML-Ausgabe.
+- ✅ Workspace-Settings erweitert (`.vscode/settings.json`):
+  - `livePreview.serverRoot` = `.`
+  - `livePreview.defaultPreviewPath` = `index-stable.html`
+  - `livePreview.autoRefreshPreview` = `onSave`
+- ✅ Changelog als PATCH auf `0.3.12` aktualisiert.
+- 🔄 Hinweis zur Aktivierung: Live Preview einmal schließen und neu öffnen (oder VS-Code-Fenster neu laden), damit die neuen Settings sicher greifen.
+
+**Status:** ✅ Completed
+
+---
+
 **Append Anchor:** Do not remove this line. New entries are inserted above it.

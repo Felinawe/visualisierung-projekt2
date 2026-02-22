@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.12] - 2026-02-22
+
+### Fixed
+
+- Live Preview für Stable stabilisiert: Workspace-Einstellungen auf relative Pfade umgestellt (`livePreview.serverRoot: "."`, `livePreview.defaultPreviewPath: "index-stable.html"`), damit `index-stable.html` in neuen Preview-Sessions konsistent aus dem Projektordner geladen wird.
+
+## [0.3.12] - 2026-02-22
+
+### Changed
+
+- Workspace-Konfiguration für Live Preview ergänzt: Server-Root auf `/` und Default-Preview-Pfad auf `/index-stable.html` gesetzt.
+- Auto-Refresh der Live Preview auf Speichern aktiviert (`onSave`), damit Änderungen an `index-stable.html` und zugehörigen Dateien unmittelbar sichtbar werden.
+
+## [0.3.11] - 2026-02-22
+
+### Changed
+
+- Stable auf ausgewähltes Preset umgestellt: `Adaptives Raster`, `Perspektive + Fokusblock`, `Standard` bei Häufigkeitsanordnung, `Segmentierte Bänder`, `Standard`-Mikrocharts und `Redaktionell Serif`.
+- `index-stable.html` bereinigt: kein Test-Variantensystem mehr im Markup, Skriptbindung auf `./src/main-stable.js`, Steuerbereich startet im Layout `layout-perspective-bridge`.
+- `src/main-stable.js` von Varianten-Umschaltung auf feste Konfiguration umgestellt; Variant-Panel-Rendering und zugehörige Umschaltpfade entfernt, Visualisierung läuft als cleanes Stable-Preset ohne Variant-UI.
+- `src/main-test.js` Einstiegsauswahl der Variant-Panels auf dieselbe Konfiguration gesetzt, alle Test-Alternativen bleiben vollständig erhalten.
+
 ## [0.3.10] - 2026-02-22
 
 ### Changed
