@@ -228,4 +228,790 @@ No unintended changes
 
 ---
 
+### 6. Overall Impression & Layout Audit (Pre-Check ohne Implementierung)
+
+**Model:** GPT-5.3-Codex
+
+**Request:** <attachment id="prompt:Overall Impression & Layout.prompt.md" filePath="/Users/felina/Documents/Master HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Overall Impression & Layout.prompt.md">
+Prompt instructions file:
+
+- ***
+
+## Goal
+
+Improve the visualization’s **overall impression** so it clearly functions as a **journalistic explanatory tool** — calm, structured, engaging — rather than a technical statistical graphic.
+
+Strengthen:
+
+- visual hierarchy
+- spatial organization
+- layout stability
+- consistency across Task 1–3
+- robustness across repeated iterations
+
+This is a controlled refinement phase.
+
+---
+
+## Anchor: Binding Rules (Do not restate — enforce)
+
+All work in this iteration must comply with the **Overall Impression & Layout** section and general practices in `copilot-instructions.md` and must remain consistent with the project’s conceptual framework in `Dok/Visualization Context & Framework.md`, specifically:
+
+- In `copilot-instructions.md`:
+  - **Colour & Design System (BINDING)**
+  - **Layout & Spacing Rules (MANDATORY)**
+  - **Data Authority & Dataset Integrity (MANDATORY)**
+  - **Start, Stable vs Test Environment (ARCHITECTURE RULE)**
+
+- In `Dok/Visualization Context & Framework.md`:
+  - The visualization’s role as a journalistic explanatory tool
+  - The scenario-card landscape concept (consistency and comparability across tasks/states)
+  - The fixed task structure (Task 1–3) as the interpretive framework
+
+Do **not** repeat those rules in your response.  
+Instead, **audit against them** and **apply them with a sharpened eye**.
+
+---
+
+## Scope
+
+This iteration focuses on **layout, structure, and design system coherence**.
+
+You are allowed to:
+
+- Identify and fix structural weaknesses
+- Improve hierarchy and grouping
+- Adjust spacing, alignment, and visual emphasis
+- Clarify component relationships
+- Remove layout regressions
+- Strengthen consistency through explicit rules (without changing meaning)
+
+Data mapping and interaction logic remain stable unless a minimal UI adjustment is strictly necessary.
+
+---
+
+## When to Introduce Test Variants
+
+Do **not** automatically create layout variants.
+
+However, if you identify a **structural decision point** with multiple plausible directions (i.e., a choice that changes the layout architecture rather than fixing a defect), such as:
+
+- Small multiples arrangement (row vs. column vs. grid)
+- Filter placement architecture (top bar vs. side panel)
+- Panel grouping logic
+- Entry hierarchy distribution
+- Comparison layout structures
+
+Then:
+
+- Propose 2–3 clearly differentiated structural alternatives.
+- Describe them as selectable variants for the existing test variant system (`main-test.js` / `index-test.html`).
+- Clearly explain what differs structurally and what remains identical.
+- Do not implement until approval.
+
+Minor layout improvements (spacing fixes, alignment corrections, typography adjustments, hierarchy tuning, overlap prevention) should be proposed as direct refinements, not variants.
+
+---
+
+## Constraints (Phase 2 Discipline)
+
+- No hidden logic changes
+- No implicit design decisions
+- No regression of stable features
+- All structural changes must be justified with a concrete problem they solve
+- If multiple plausible solutions exist: surface them explicitly (variants only if architectural)
+
+---
+
+## Procedure (Do not implement yet)
+
+### Step 1 — Layout Diagnosis (Audit Mode)
+
+Identify concrete layout issues grouped by:
+
+- Visual hierarchy (primary vs. secondary elements)
+- Structural grouping (logical clustering of components)
+- Consistency across states (incl. hover/selected/filtered)
+- Spatial rhythm and whitespace
+- Alignment and grid coherence
+- Responsiveness (narrow + wide)
+- Stability across Task switching (Task 1–3)
+- Regression risks (what tends to break again)
+
+Be specific. Tie each issue back to a binding principle (without re-quoting it).
+
+---
+
+### Step 2 — Design System Stabilization Plan (Enforcement Mode)
+
+Propose **explicit stabilization rules** that prevent “style drift” _while staying within the binding system_, e.g.:
+
+- Where colour mapping must be centralized/locked
+- Which spacing constants should be unified
+- Which layout constraints should be made invariant (no-overlap, legend boundaries, panel boundary)
+- Which component positioning rules must remain stable across tasks
+- How reset/controls placement stays consistent without crowding
+
+Focus on rules that can survive repeated iterations.
+
+---
+
+### Step 3 — Concrete Improvements (Refinement Mode)
+
+List concrete layout improvements.
+
+For each improvement:
+
+- What changes
+- Which problem it solves
+- Which tasks/states it affects
+- Risk assessment (low / medium / structural)
+- How it reduces future regressions
+
+Minor improvements can be grouped.
+
+---
+
+### Step 4 — Structural Alternatives (Only if necessary)
+
+If you identify a genuine structural decision point:
+
+Present:
+
+#### Variant A
+
+- Structural logic
+- Visual hierarchy impact
+- What remains unchanged (must stay identical)
+
+#### Variant B
+
+- Structural logic
+- Visual hierarchy impact
+- What remains unchanged (must stay identical)
+
+For each variant, explain how it integrates into the test variant system:
+
+- Variant label (as shown in the test panel)
+- What layout rules toggle
+- What stays identical to baseline
+- How comparison with baseline works
+
+Do not force variants where direct refinement is sufficient.
+
+---
+
+## Instruction File Enhancements (Optional, only if warranted)
+
+If your audit reveals that the existing binding section **Overall Impression & Layout**is:
+
+- ambiguous,
+- incomplete for recurring edge cases,
+- or repeatedly causing regressions,
+
+then propose **small, concrete additions** to the layout-related part of `copilot-instructions.md`.
+
+Rules:
+
+- Propose enhancements as short bullet points (“Add rule: …”)
+- Do not modify the file without approval
+- Only propose enhancements that reduce future regressions or resolve ambiguity
+
+If no enhancement is needed, state: “No instruction update needed.”
+
+---
+
+## Definition of Done
+
+The layout iteration is successful when:
+
+- No overlaps or unstable rendering occur (including dynamic states)
+- Visual hierarchy is clear within 3 seconds
+- Binding colour + spacing logic is consistently enforced across Task 1–3
+- Test panel separation is clean and never interferes with the visualization area
+- No layout regressions appear after interaction
+- Structural decisions are either clearly justified or consciously variant-tested
+- Any needed instruction enhancements are identified (or explicitly ruled out)
+
+---
+
+## Pre-Check (Approval Gate)
+
+Before implementation, output:
+
+1. Diagnosis summary
+2. Stabilization rules
+3. Concrete improvement list
+4. Structural alternatives (if any)
+5. Instruction enhancement suggestions (if any)
+
+Then ask:
+
+“Do you approve implementing these layout refinements in the test environment (main-test.js / index-test.html)?
+If structural variants were proposed, which variant should be added to the test variant system for comparison?”
+
+Wait for explicit approval.
+
+</attachment>
+Follow instructions in [Overall Impression & Layout.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Overall%20Impression%20%26%20Layout.prompt.md).
+
+**Action:**
+
+- 🔄 Audit-Modus gestartet: Ist-Stand in `index-test.html`, `src/main-test.js`, `index-start.html`, `src/main-start.js`, `index-stable.html`, `src/main-stable.js` und konzeptionellem Referenzdokument geprüft.
+- 🔄 Pre-Check-Ausgabe vorbereitet (Diagnose, Stabilisierung, konkrete Refinements, ggf. strukturelle Varianten) ohne Implementierung.
+- ⏸ Wartet auf Freigabe vor Änderungen in Test-Dateien.
+
+**Status:** ⏸ Pending
+
+---
+
+### 7. Overall Impression & Layout – Umsetzung freigegeben
+
+**Model:** GPT-5.3-Codex
+
+**Request:** yes I approve. Please implement all steps from 1-5. Pleace implement all suggested variants in variant system
+
+**Action:**
+
+- ✅ `index-test.html` vollständig von Platzhalter auf testbare D3-Oberfläche mit klar getrenntem Top-Variantensystem und darunterliegendem Visualisierungsbereich umgestellt.
+- ✅ `src/main-test.js` vollständig implementiert (Szenario-Landschaft, Task-Ansichten, Controls, Legende) inklusive aller freigegebenen Strukturvarianten im Variantensystem.
+- ✅ Variantenpanel erweitert (Radio-only, Standard zuerst) mit zwei Entscheidungsdimensionen:
+  - Layoutstruktur: Standard / Adaptives Raster
+  - Gruppendarstellung: Standard / Segmentierte Bänder
+- ✅ Layout-Stabilisierung umgesetzt: zentrale Layout-Konstanten, konsistente Zustandsdarstellung, robustere responsive Rasterlogik.
+- ✅ Pfadhärtung umgesetzt: relative Script-Pfade in `index-test.html` und `index-stable.html`.
+- ✅ `.github/copilot-instructions.md` um freigegebene kleine Layout-Regelerweiterungen ergänzt.
+- ✅ `changelog.md` auf Version `0.2.0` (MINOR) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 8. Probability-basierte Layout-Varianten für globale Häufigkeit
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Current Problem:
+The simulator currently sorts scenarios based on filtered perspectives (e.g., leadership, majority, threshold effects), but it does not reflect how frequently specific seat distributions occur in the overall simulation. Users cannot immediately see which political constellations dominate the simulated outcome space.
+
+Goal:
+Introduce two probability-based layout as variants to the standard version that visually prioritizes the most frequent seat distributions across the full simulation dataset, while keeping filters as a highlighting mechanism only.
+
+Task:
+
+- Arrange scenario tiles spatially:
+  -> e.g. Center = most frequent seat distributions across all simulations; Mid-area = moderately frequent configurations; Outer area = rare or outlier constellations.
+
+Define probability strictly as:
+
+- Relative frequency within the full simulation dataset.
+- Ensure that activating filters (e.g., leadership, majority type) does NOT change the probability ranking. BUT Filtered scenarios must be clearly highlighted through visual emphasis (e.g., border, glow, elevation, or background contrast).
+
+Constraints:
+
+- The underlying simulation data must remain unchanged.
+- Clear visual hierarchy without UI overload.
+
+Definition of Done:
+
+- Scenarios are visibly arranged by global frequency.
+- Rare configurations appear clearly peripheral.
+- Filters highlight but do not re-sort scenarios.
+- The layout remains readable and journalistically neutral.
+
+**Action:**
+
+- ✅ `src/main-test.js` erweitert: globale Häufigkeitslogik auf Basis relativer Frequenz im Gesamtdatensatz ergänzt (Signaturbildung der Sitzverteilung + Ranking über alle Szenarien).
+- ✅ Zwei neue Varianten im Test-Variantensystem implementiert:
+  - `Häufigkeit: Zentrum`
+  - `Häufigkeit: Zonen`
+- ✅ In beiden Häufigkeitsvarianten bleibt die Anordnung unabhängig von Filtern stabil; Filter wirken nur als visuelle Hervorhebung.
+- ✅ `index-test.html` angepasst: stärkere visuelle Hervorhebung gefilterter Karten (Rand, Kontrast, Schatten).
+- ✅ `changelog.md` auf Version `0.3.0` (MINOR) ergänzt.
+
+**Status:** ✅ Completed
+
+---
+
+### 9. Kreislayout für Häufigkeit: Zentrum + Cross-Panel Consistency
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Keep Variant unchanged: Häufigkeit: Zonen - Häufige Sitzbilder zuerst, seltene klar am Randbereich
+
+Change Variant: Häufigkeit: Zentrum - Häufige Sitzbilder liegen in der Mitte, seltene Außen
+
+Goal:Introduce a circular layout where probability is reflected spatially:
+more frequent seat distributions are positioned closer to the center of a circle, while rare ones move toward the outer radius. Arrange all scenarios inside a circle.
+Use frequency to determine radius:
+
+- Higher frequency → smaller radius (closer to center)
+- Lower frequency → larger radius (closer to outer boundary)
+- Do not change the underlying frequency calculation and highlighting of filtered scenarios
+- follow: layout system defined in copilot.instructions.md and visualization Context & Framework.md
+
+Create a compact, fully filled circular layout where probability is reflected spatially:
+
+- More frequent seat distributions are positioned closer to the center.
+- Rare seat distributions are positioned near the outer radius.
+- All scenarios must remain inside a fixed circle boundary.
+- Points must fill the interior area evenly (no hollow center, no outer-only ring effect).
+- No scrolling caused by layout expansion.
+- All filter and grouping logic must apply consistently across all layout modes.
+
+Do not change:
+
+- Underlying frequency calculation.
+- Highlighting logic of filtered scenarios.
+
+Cross-Panel Consistency (Mandatory)
+
+- All filter and panel logics must work across all layout variants:
+- e.g. Variant "Adaptives raster" ("Layoutstruktur") and "Segmentierte Bänder" ("Gruppendarstellung") must remain selectable and functional for all variants in "Häufigkeitsanordnung)
+- Please add the general idea of Cross-Panel Consistency (Mandatory) as an general rule in copilot-instructions.md in section "Start, Stable vs Test Environment (ARCHITECTURE RULE)"
+
+**Action:**
+
+- ✅ `src/main-test.js` geändert: `renderFrequencyCenterLandscape()` vollständig auf Kreislayout umgestellt; ersetzt Manhattan-Distanz-Logik durch radiale Frequenz-Positionierung.
+- ✅ `buildCircularFrequencyPositions()` hinzugefügt: berechnet radiale Positionen basierend auf globalem Frequenz-Ranking (häufige Szenarien innen, seltene außen), mit Jitter zur Überlappungsreduktion.
+- ✅ Hint für "Häufigkeit: Zentrum" auf "Kreislayout: häufige Sitzbilder innen, seltene außen" angepasst.
+- ✅ `.github/copilot-instructions.md` erweitert: neue Sektion "Cross-Panel Consistency (MANDATORY)" eingefügt, die fordert, dass alle Variantenpanel unabhängig und kombinierbar bleiben.
+- ✅ `changelog.md` auf Version `0.3.1` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 10) Microchart Display Variants: Compact Icons
+
+**Model:** Claude Sonnet 4.5
+
+**Request:**
+
+Current Problem:
+The current bar-style microcharts are not consistently readable across all frequency layouts.
+In the "Häufigkeit: Zentrum - Häufige Sitzbilder liegen in der Mitte, seltene Außen" scenario cards may overlap or appear in dense arrangements. The horizontal bar charts lose clarity when scaled down or placed in radial positioning.
+
+Goal:
+Test alternative microchart designs that remain clearly readable in all layout modes (grid, zoned frequency, circular center layout).
+
+Microcharts must:
+
+- Remain legible at small sizes.
+- Work in dense or radial positioning.
+
+Task:
+Introduce two alternative microchart variants that can be toggled.
+-> Variant one should be a Compact Icon-Based Representation (radial, circular instead of cards)
+-> Optimized for small circular layouts.
+
+Both variants must:
+
+- Use the same underlying seat data.
+- Respect active filters and highlighting.
+- work in combination with all other variants
+
+Definition of Done:
+
+- Two microchart variants are available as toggle options.
+- Both remain legible in dense circular layout.
+- No loss of clarity in grid layout.
+- Overlapping perception is reduced.
+- Layout, filtering, frequency logic, combination with other panels remain unaffected/still works.
+
+**Action:**
+
+- ✅ `VARIANT_GROUPS` erweitert: Neues Panel "Mikrochart-Darstellung" mit zwei Optionen hinzugefügt:
+  - `Standard`: Horizontale Balken wie in Start
+  - `Kompakte Icons`: Kreisförmige Icons, optimiert für dichte Layouts
+- ✅ `state.variants.microchartDisplay` initialisiert mit Wert `"standard"`.
+- ✅ `drawCardContents()` umgebaut zur Router-Funktion: delegiert basierend auf `state.variants.microchartDisplay` an `drawCardContentsStandard()` oder `drawCardContentsCompact()`.
+- ✅ `drawCardContentsStandard()` erstellt: enthält bisherige Horizontalbalken-Logik (unverändert aus Start-Baseline).
+- ✅ `drawCardContentsCompact()` erstellt: rendert kreisförmige Pie-Chart-Icons mit radial-segmentierten Partei-Arcs (D3 arc generator, innerRadius=0, outerRadius=28), zentriert in Card-Fläche.
+- ✅ Beide Varianten respektieren Filter, Highlighting, und arbeiten mit allen Layout-Modi (Standard-Raster, Adaptives Raster, Häufigkeit: Zonen, Häufigkeit: Zentrum).
+- ✅ `changelog.md` auf Version `0.3.2` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 11) Circle-Only Marker Mode für dichte Zentrumslayouts
+
+**Model:** GPT-5.3-Codex
+
+**Request:**
+
+Current Problem:
+In the current "Häufigkeit: Zentrum - Häufige Sitzbilder liegen in der Mitte, seltene Außen." The card containers, borders, and shadows create visual stacking and reduce readability. Even with radial microcharts, the card framing causes clutter in dense central areas. The design is not robust for compact circular positioning.
+
+Goal:
+Improve readability in dense circular arrangements by introducing a minimal visual encoding that works without card containers. Scenarios must remain clearly distinguishable even when tightly packed near the center.
+
+Task:
+
+- Keep existing two microchart variants.
+- Add a third alternative optimized for dense circular layouts: Circle-Only Marker Mode (No Cards)
+- Remove card containers entirely.
+- No rectangular background.
+- No drop shadows.
+- No heavy borders.
+
+Each scenario is represented only by:
+
+- A compact circular icon.
+- Radial seat-share segmentation inside the circle.
+- Optional thin neutral outline for separation.
+
+Layout behavior:
+
+- Icons act as spatial markers.
+- Density near the center must remain readable.
+- Overlap should be minimized via collision handling.
+
+This mode must:
+
+- work in combination with other panels
+- Respect all filters and highlighting rules.
+- Use the same underlying frequency calculation.
+- Only the visual representation changes.
+
+Definition of Done:
+
+- Circular layout no longer produces stacked card clutter.
+- Scenarios are readable as individual circular markers.
+- Dense center remains interpretable.
+- Filters and highlighting remain functional.
+- All layout modes behave consistently.
+
+**Action:**
+
+- ✅ `src/main-test.js` erweitert: dritte Option `Nur Kreis-Marker` im Panel `Mikrochart-Darstellung` ergänzt.
+- ✅ Neuer Marker-Renderer `drawCardContentsCircleOnly()` implementiert: reine Kreis-Marker mit radialen Sitzanteilssegmenten, ohne Kartencontainer.
+- ✅ Kartenrahmen im Marker-Modus entfernt: kein Rechteck-Hintergrund, keine Schatten-/Container-Hervorhebung, keine schweren Rahmen.
+- ✅ Kollisionsbehandlung für `Häufigkeit: Zentrum` integriert (`applyCircularCollision()`), damit Marker im dichten Zentrum besser trennbar bleiben.
+- ✅ Layoutlogik verallgemeinert (`getMicrochartFrame()`): Marker-Modus funktioniert konsistent in Standard-Raster, Adaptivem Raster, Häufigkeitszonen und Zentrumslayout.
+- ✅ Filter- und Highlight-Regeln bleiben unverändert wirksam; Frequenzberechnung bleibt unverändert.
+- ✅ `changelog.md` auf Version `0.3.3` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 12) Cross-Panel Composability Fix für Häufigkeitsmodi
+
+**Model:** GPT-5.3-Codex
+
+**Request:**
+
+Current Problem:
+Selecting different frequency modes "Häufigkeit: Zentrum - Häufige Sitzbilder liegen in der Mitte, seltene Außen" or "Häufigkeit: Zonen - Häufige Sitzbilder zuerstin combination the two variants of "Gruppendarstellung" it does not consistently change the layout.
+
+Some panel selections appear to override or ignore other active selections.
+For example, switching to "Häufigkeit: Zonen - Häufige Sitzbilder zuerst. seltener klar am Randbereich" and "Stanard - Ein durchgehendes Szenariofeld" it does not produce a logical update. In This case the seperation appears not only after switching to variant two.
+
+Panel logic currently behaves inconsistently and is not fully composable.
+
+Goal:
+
+- Ensure that all control panels operate independently but combine consistently.
+- Each panel selection must modify only its own dimension of logic while respecting all other active selections.
+- All state combinations must produce a predictable and visible result.
+
+Task:
+Fix panel interaction logic so that:
+
+- Frequency mode affects only spatial ordering.
+- Group display affects only grouping structure.
+- Grid structure affects only layout grid mechanics.
+- Filters affect only highlighting and selection.
+
+Ensure all panels are state-composable:
+
+- Any combination of active settings must produce a consistent layout update.
+- no panel selection may silently override another panel’s logic.
+- No state combination may result in no visible change when a change is expected.
+
+Update Required: Cross-Panel Consistency (MANDATORY) in copilot-instructions.md
+Update the general rule paragraph:
+
+- All panels must operate on a shared, immutable dataset.
+- Panel logic must be modular, orthogonal, and additive.
+- Each panel controls exactly one logical dimension.
+- No panel may redefine, reset, or override another panel’s state.
+- State resolution must be derived from a unified state object.
+- All state combinations must be valid and renderable.
+- Any panel selection must produce a visible and logically explainable effect.
+- Interaction logic must remain deterministic and free of implicit coupling.
+
+Definition of Done:
+
+- Switching any panel option always results in a visible and logical update.
+- All panel combinations work consistently.
+- No layout mode overrides another silently.
+- The system behaves predictably across all state combinations.
+- New paragraph to Cross-Panel Consistency (MANDATORY) in copilot-instructions.md
+
+**Action:**
+
+- ✅ `src/main-test.js` refaktoriert: Zustand wird nun orthogonal aufgelöst (`resolveOrderedScenarios`, `rankCards`, `buildGroupedBands`) statt panel-spezifischer Sonderpfade.
+- ✅ `Häufigkeit: Zonen` korrigiert: berücksichtigt jetzt `Gruppendarstellung` konsistent; bei `Segmentierte Bänder` werden pro Zone fokussierte und übrige Szenarien getrennt dargestellt.
+- ✅ `Häufigkeit: Zentrum` korrigiert: Gruppierung überschreibt nicht mehr die Frequenzplatzierung; Frequenz bestimmt Positionen, Gruppierung wirkt nur strukturell (Layer/Leselogik).
+- ✅ Nicht-deterministische Zufallsjitter entfernt: Kreislayout verwendet jetzt deterministische Seed-Noise-Funktionen (`fractionalNoise`, `signedNoise`) für reproduzierbares Verhalten.
+- ✅ Cross-Panel-Regelwerk in `.github/copilot-instructions.md` unter `Cross-Panel Consistency (MANDATORY)` um den geforderten verbindlichen Absatz erweitert.
+- ✅ `changelog.md` auf Version `0.3.4` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 13) Wording-Harmonisierung für Häufigkeit: Zentrum
+
+**Model:** GPT-5.3-Codex
+
+**Request:**
+
+Current Problem:
+The label for “Häufigkeit: Zentrum – Kreislayout: häufige Sitzbilder innen, seltene außen” is inconsistent (look at pasted pcture) with the wording style of “Häufigkeit: Zon(en – Häufige Sitzbilder zuerst, seltene klar am Randbereich”. (look at pasted picture 2) if "Segmentierte Bönder - Fokkusgruppe und übrige Szenarien werden getrennt angezeigt" is selected. The terminology is not parallel and the inner/outer logic is not explicitly labeled.
+
+Task:
+
+- Update the wording so it follows the same linguistic structure and clarity as the zoned variant: Inner area as „Zentrum: häufige Sitzbilder“ etc.; Outer area as „Außenbereich: seltene Konstellationen“
+- Use consistent phrasing.
+- Keep wording concise and structurally parallel to the variant: “Häufigkeit: Zonen – Häufige Sitzbilder zuerst, seltene klar am Randbereich”
+- Panel logic currently behaves inconsistently and is not fully composable.
+
+**Action:**
+
+- ✅ `src/main-test.js` sprachlich harmonisiert: Hinweistext für `Häufigkeit: Zentrum` auf eine parallel strukturierte Formulierung umgestellt.
+- ✅ Segmentierter Kreislayout-Header angepasst: statt „Im Fokus/Weitere Szenarien“ jetzt explizite Innen/Außen-Logik mit `Zentrum: häufige Sitzbilder (...) · Außenbereich: seltene Konstellationen (...)`.
+- ✅ Begrifflichkeit zwischen `Häufigkeit: Zentrum` und `Häufigkeit: Zonen` vereinheitlicht (journalistisch klar, kurz, parallel).
+- ✅ `changelog.md` auf Version `0.3.5` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 14) Hover-Panel für absolute Sitzverteilung
+
+**Model:** GPT-5.3-Codex
+
+**Request:**
+
+Current Problem:
+Scenario tiles only show limited numeric information. Users cannot immediately understand the political implications of a specific seat distribution.
+
+Goal:
+Add a structured hover panel that provides clear, concise journalistic context so users can grasp the political relevance of a scenario within seconds.
+
+Task:
+
+- Implement a hover panel for each scenario tile.
+- Display: Exact seat distribution (absolute numbers per party).
+
+Definition of Done:
+
+- Hovering over a scenario reveals a structured information panel.
+- Users can understand the seat balance within seconds.
+- The panel enhances clarity without cluttering the interface.
+
+**Action:**
+
+- ✅ `src/main-test.js` erweitert: zentrales Hover-Binding (`bindScenarioHover`) für alle Szenario-Tiles/Marker implementiert.
+- ✅ Strukturierter Hover-Panel-Inhalt ergänzt: Titel mit Szenario-Info plus exakte Sitzverteilung in absoluten Sitzen je Partei.
+- ✅ Neue Umrechnungslogik `buildAbsoluteSeatRows()` ergänzt (größter-Rest-Verfahren), sodass die Sitzsummen konsistent auf 630 Sitze verteilt werden.
+- ✅ Hover-Panel-Positionierung hinzugefügt (`positionScenarioHoverPanel`) mit Begrenzung auf den Visualisierungsbereich.
+- ✅ `index-test.html` um zurückhaltende Hover-Panel-Styles erweitert, damit die Zusatzinformation klar lesbar bleibt ohne die Hauptansicht zu überladen.
+- ✅ `changelog.md` auf Version `0.3.6` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 15) Hover-Positionierung korrigieren
+
+**Model:** Claude Sonnet 4.5
+
+**Request:**
+
+Find out the difference between the Hover Positioning of grey Hover of „nur Kreis-Marker" and all new White Hovers and change the Positioning of all new white hovers to the grey of „nur Kreis-Marker" see what the white hover looks like vs the wrey hover that was tehre before in „Nur kreis-Marker"
+
+look at Picture
+
+**Action:**
+
+- ✅ Ursache identifiziert: Der alte graue Hover war ein natives SVG `<title>` Element (Browser-Tooltip direkt am Cursor), der neue weiße Panel nutzte einen festen 14px Offset.
+- ✅ Drei Korrekturen implementiert:
+  1. `#visualization` Container erhält `position: relative` für korrekten Positionierungskontext (index-test.html)
+  2. Altes SVG `<title>` Element aus dem Kreis-Marker-Modus entfernt (src/main-test.js, Zeile 908-910)
+  3. Hover-Panel-Offset von 14px auf 12px/8px reduziert für cursor-nahe Positionierung (src/main-test.js)
+- ✅ Positionierungslogik verbessert: Panel erscheint jetzt direkt neben dem Cursor, verhält sich wie der ursprüngliche Browser-Tooltip.
+- ✅ Doppel-Tooltip im Kreis-Modus eliminiert.
+- ✅ `changelog.md` auf Version `0.3.7` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 16) Structural Redesign der Steuerbereich-Anordnung
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Current Problem:
+The control switches directly within the visualization (perspective buttons, scenario selector, focus party selector) are currently arranged in a linear row (look at pasted picture). While functional, the structure does not clearly communicate hierarchy:
+
+- Perspective controls and configuration controls are visually too similar.
+- Focus party selection does not feel conceptually connected to the active perspective.
+- Scenario count competes visually with primary controls.
+- The layout feels incremental rather than structurally designed.
+
+Goal:
+Explore fundamentally different layout structures for the visualization control area.
+This is a structural redesign task — not a refinement.
+The new variants should:
+
+- Clearly separate primary navigation from configuration controls.
+- Make the focus party feel conceptually integrated with perspective.
+- Allow scenario count to be repositioned if structurally beneficial.
+- Improve hierarchy, clarity, and visual authority. But above all: reader-friendly visual appearance
+- No wording, logic, or interaction behavior may change. Only added in form of subtitles if needed.
+
+Task:
+Propose at least two alternative layout structures (in addition to the current “Standard” layout).
+Examples of acceptable structural shifts:
+
+- Moving configuration controls into a secondary row or block.
+- Integrating focus party more directly into perspective selection.
+- Separating navigation and parameter settings spatially.
+- Rebalancing left/right visual weight.
+
+Each variant must:
+
+- Improve visual hierarchy and genereal, reader-friendly appearance
+- Clarify conceptual grouping.
+- Strengthen spatial rhythm.
+- Maintain compactness.
+
+Do not modify:
+
+- Button labels
+- Interaction logic
+- Only layout and structural arrangement may change.
+
+Definition of Done:
+
+- At least two clearly different structural layouts are proposed (The redesign is visibly distinct from “Standard”).
+- Focus party appears more intentionally integrated.
+- Scenario count no longer competes visually with primary controls.
+- Each variant improves grouping clarity and general appearance.
+- Interaction remains intuitive.
+
+**Action:**
+
+- ✅ `index-test.html` erweitert: neuer Container `#control-area` für getrennte Steuerflächen-Struktur; drei Layoutmodi (`layout-standard`, `layout-perspective-bridge`, `layout-split-emphasis`) per CSS ergänzt.
+- ✅ Zwei deutlich unterschiedliche Alternativen zusätzlich zu Standard umgesetzt:
+  - `Perspektive + Fokusblock`: Fokussteuerung priorisiert unter der Perspektivenavigation, Szenariozahl sekundär rechts/nachgeordnet.
+  - `Geteilte Steuerfläche`: Navigation links, kontextbezogener Fokusblock rechts, Szenariozahl visuell nachgeordnet im selben Block.
+- ✅ `src/main-test.js` erweitert: neue Test-Varianten-Gruppe `Steuerbereich-Struktur` inkl. Radio-Optionen `Standard`, `Perspektive + Fokusblock`, `Geteilte Steuerfläche`.
+- ✅ Steuerlogik unverändert beibehalten: Labels, Auswahloptionen, Event-Handling und Zustandsänderungen bleiben identisch; nur DOM-Gruppierung und Layout-Klassen wurden angepasst.
+- ✅ Optionaler Zusatztext nur als Subtitel ergänzt (`Auswahl zur aktiven Perspektive`) und nur in Nicht-Standard-Layouts.
+
+**Status:** ✅ Completed
+
+---
+
+### 17) Stilvarianten für redaktionelle Lesbarkeit
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Current Problem:
+The current “Standard” styling of the visualization (font choices, weight hierarchy, and color usage) is functional but not yet optimized for a reader-oriented, newspaper-like aesthetic. The typography and color palette could better support clarity, hierarchy, and visual calmness — especially in a data journalism context.
+
+Goal:
+Develop alternative styling variants that improve readability and visual attractiveness while maintaining a newspaper-friendly, editorial tone. All content, structure, interaction logic, and layout mechanics must remain unchanged. Only typography and color styling may be adjusted.
+
+Task:
+Propose at least two distinct visual styling variants (in addition to “Standard”) that focus exclusively on:
+
+- Font family selection
+- Font weight hierarchy
+- Letter spacing
+- Line height
+- Color palette adjustments
+- Contrast optimization
+- Background tone refinement
+
+Each variant should:
+
+- above all: Support a calm, high-quality journalistic appearance.
+- Emphasize editorial clarity.
+- Improve readability for longer on-screen viewing.
+- Maintain strong data visibility.
+- Avoid excessive visual noise.
+
+Do not modify:
+
+- Content
+- Labels
+- Layout structure
+- Interaction logic
+- Frequency or filter logic
+
+Definition of Done:
+-At least two clearly distinct styling variants are proposed.
+
+- Each variant enhances reader friendliness.
+- visual hierarchy is improved without structural changes.
+- The interface feels more editorial and newspaper-like.
+- All functionality remains identical to the Standard variant.
+
+**Action:**
+
+- ✅ `src/main-test.js` erweitert: neue Variantengruppe `Typografie & Farbklima` mit `Standard`, `Redaktionell Serif` und `Redaktionell Sans` ergänzt.
+- ✅ Stilstatus in `state.variants.editorialStyle` eingeführt und über `applyEditorialStyleVariant()` als Body-Klasse umgesetzt (`editorial-standard`, `editorial-calm-serif`, `editorial-clear-sans`).
+- ✅ `index-test.html` auf tokenbasiertes Stil-System umgestellt (Schriftfamilien, Gewichts-Hierarchie, Laufweite, Zeilenhöhe, neutrale Farbkontraste, Hintergrundtöne) ohne Änderungen an Inhalt, Struktur oder Interaktionslogik.
+- ✅ Partei-Farbcodierung für Datenmarken unverändert beibehalten; Anpassungen betreffen ausschließlich typografische und neutrale UI-Farbstile.
+- ✅ Pflichtdokumentation ergänzt: `changelog.md` auf `0.3.9` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 18) Stilvarianten neutralisieren und auf Visualisierungsbereich begrenzen
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Refine the current styling variants.
+
+- The previous proposal changed the overall background tone too strongly (e.g. warm/yellow cast). This is not intended.
+
+Adjust the variants so that:
+
+- The base background remains neutral.
+- No global color wash is introduced.
+  -Party colors remain unchanged.
+- Only accent colors (active states, highlights, focus indicators) may shift subtly.
+- Any background adjustments must be extremely subtle (max. minimal tonal refinement).
+- Typography refinements should carry most of the editorial character — not color shifts.
+
+Important:
+
+- The styling changes must apply only to the visualization area.
+- The Test Variant System must remain in Standard typography and color styling.
+- No visual changes may affect the test controls panel.
+
+Keep all layout, structure, and logic unchanged. The result should feel like a restrained editorial refinement, not a visual re-theme.
+
+**Action:**
+
+- ✅ `index-test.html` angepasst: Varianten-Styles von `body` auf `#visualization` umgestellt (`visual-style-standard`, `visual-style-calm-serif`, `visual-style-clear-sans`), damit nur der Visualisierungsbereich variiert.
+- ✅ Farbcharakter der Varianten zurückgenommen: keine globale Tönung mehr, neutrale Flächenbasis beibehalten, nur subtile Akzentanpassungen für aktive Zustände, Highlights und Fokusindikatoren.
+- ✅ `body` auf festen Standard-Look gesetzt, sodass das obere Test-Variantensystem unverändert in Standard-Typografie und Standard-Farben bleibt.
+- ✅ `src/main-test.js` angepasst: `applyEditorialStyleVariant()` setzt Klassen jetzt auf `#visualization` statt auf `body`.
+- ✅ Partei-Farben in den Datenmarken unverändert belassen.
+- ✅ Pflichtdokumentation ergänzt: `changelog.md` auf `0.3.10` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
 **Append Anchor:** Do not remove this line. New entries are inserted above it.

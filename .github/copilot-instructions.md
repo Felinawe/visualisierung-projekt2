@@ -322,6 +322,29 @@ must remain strictly preserved.
 
 ---
 
+### Cross-Panel Consistency (MANDATORY)
+
+All variant panels in the test variant system must remain functionally independent and combinable:
+
+- Every variant option in any panel must remain selectable and functional regardless of which options are active in other panels.
+- No variant combination may silently degrade, break, or produce inconsistent output.
+- If a variant combination is technically impossible, this must be explicitly documented and communicated to the user via UI, not silently ignored.
+
+Cross-panel state logic is binding and must follow these implementation rules:
+
+- All panels must operate on a shared, immutable dataset.
+- Panel logic must be modular, orthogonal, and additive.
+- Each panel controls exactly one logical dimension.
+- No panel may redefine, reset, or override another panel’s state.
+- State resolution must be derived from a unified state object.
+- All state combinations must be valid and renderable.
+- Any panel selection must produce a visible and logically explainable effect.
+- Interaction logic must remain deterministic and free of implicit coupling.
+
+This ensures that users can explore all variant combinations without encountering unexpected breakage or hidden constraints.
+
+---
+
 ## Test Variant System (UI REQUIREMENT – MANDATORY)
 
 The test variant system must be implemented as a clearly separated top panel (NOT part of the visualization).
@@ -449,6 +472,8 @@ Panel separation:
 
 - Test controls must be visually separated from the transferable visualization.
 - They must never overlap or interfere with the chart area.
+- Layout constants for spacing, radius, and grid gap must be centralized in one configuration section; avoid distributed magic numbers in rendering functions.
+- Small multiples must use a responsive minimum/maximum column logic; fixed column counts are allowed only as explicit test variants.
 
 ## Understanding & Correctness
 
