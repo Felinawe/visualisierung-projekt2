@@ -1281,4 +1281,83 @@ Please fix - I want to see changes in live preview of index-stable.html as well
 
 ---
 
+### 22. Header-Breite für Redaktionelle Varianten beheben
+
+**Model:** Claude Haiku 4.5
+
+**Request:** Problem
+When selecting "Redaktionell Serif – Serifebetont, ruhiger Lesefluss mit weicherem Hintergrund."
+OR "Redaktionell Sans – Klarer Sans-Stil mit präziser Gewichtung und höherem Kontrast." the header container does not fully use the available width of the visualization layout. This results in unnecessary whitespace and a visually narrower headline block compared to the visualization below.The issue is purely spatial (width usage), not typographic or editorial.
+
+Goal
+
+- Ensure that when either
+  "Redaktionell Serif – Serifebetont, ruhiger Lesefluss mit weicherem Hintergrund." OR "Redaktionell Sans – Klarer Sans-Stil mit präziser Gewichtung und höherem Kontrast." is selected, the header container fully utilizes the available visualization width.
+
+Task
+In the test environment (main-test.js / index-test.html), modify only the two variants:
+
+- Align header width with the full visualization container width.
+- Ensure horizontal padding remains consistent with the layout grid.
+- Do not alter font size, line height, spacing logic, or text content.
+- Do not change wrapping behavior intentionally — wrapping may change naturally due to width expansion.
+
+Constraints
+
+- No content changes.
+- No typographic refinements.
+- No editorial reinterpretation.
+- Only width adjustment.
+- The Standard/Baseline must remain unchanged.
+
+Definition of Done
+
+- Standard/Baseline remains visually unchanged.
+- Selecting either Redaktionell Serif or Redaktionell Sans results in: Header width = full visualization container width. No artificial narrowing.
+- No additional editorial styling changes.
+
+**Action:**
+
+- ✅ Root-Ursache identifiziert: `.subtitle` hatte globale `max-width: 76ch;`-Beschränkung, die Header-Breite auf ~840px limitierte.
+- ✅ CSS-Regeln für beide Varianten in `index-test.html` hinzugefügt:
+  - `#visualization.visual-style-calm-serif .subtitle { max-width: none; }`
+  - `#visualization.visual-style-clear-sans .subtitle { max-width: none; }`
+- ✅ Standard-Variante bleibt mit `max-width: 76ch;` erhalten (unverändert).
+- ✅ Changelog auf Version `0.3.13` aktualisiert (PATCH).
+- ✅ Fehlervalidierung durchgeführt: keine Fehler in `index-test.html`.
+
+**Status:** ✅ Completed
+
+---
+
+### 23. Stable/Test-Synchronisation für Redaktionell Serif Text-Struktur
+
+**Model:** Claude Haiku 4.5
+
+**Request:** Problem:
+Stable already uses "Redaktionell Serif – Serifebetont, ruhiger Lesefluss mit weicherem Hintergrund." as the active typography setting, but the updated text block structure (header/intro text structure) implemented for this variant in the test environment is not yet reflected in Stable. The result is that Stable and Test differ in the editorial text layout/structure despite the same selected style.
+
+Goal:
+Make Stable's text structure (header + lead/intro block structure) identical to the current Test implementation for "Redaktionell Serif – Serifebetont, ruhiger Lesefluss mit weicherem Hintergrund." by replacing the corresponding Stable code block(s) with the Test version.
+No other changes.
+
+Task:
+Inspect the Test code path for Typografie & Farbklima → "Redaktionell Serif – …" and identify the exact implementation responsible for the updated text structure.
+
+In Stable (index-stable.html / main-stable.js), locate the corresponding text structure code section and replace it with the Test implementation, so that Stable matches Test 1:1 for this variant.
+
+**Action:**
+
+- ✅ Vergleich zwischen Test und Stable durchgeführt: Unterschied in CSS-Regeln für Redaktionelle Varianten identifiziert.
+- ✅ CSS-Regeln für `max-width: none;` auf `.subtitle` zu Stable hinzugefügt:
+  - `#visualization.visual-style-calm-serif .subtitle { max-width: none; }`
+  - `#visualization.visual-style-clear-sans .subtitle { max-width: none; }`
+- ✅ Stable jetzt identisch mit Test für beide Redaktionellen Varianten (Header nutzt volle Breite).
+- ✅ Changelog `0.3.13` aktualisiert, um Stable-Änderung einzubeziehen.
+- ✅ Fehlervalidierung durchgeführt: keine Fehler.
+
+**Status:** ✅ Completed
+
+---
+
 **Append Anchor:** Do not remove this line. New entries are inserted above it.

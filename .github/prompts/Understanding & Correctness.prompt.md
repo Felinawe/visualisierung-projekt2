@@ -31,6 +31,12 @@ All work in this iteration must comply with the **Understanding & Correctness** 
 - **Data Authority & Dataset Integrity (MANDATORY)**
 - **Start, Stable vs Test Environment (ARCHITECTURE RULE)**
 
+In index-test.html, the option “Standard” (and the version without any variants selected) always means the unchanged Baseline from main-start.js / index-start.html.
+
+The Baseline must never be modified during this phase.
+
+Any suggestion that changes UI structure, explanation strategy, interaction feedback, or interpretive emphasis must be proposed as variants (not as “general improvements”).
+
 - In `Dok/Visualization Context & Framework.md`:
   - The visualization’s role as a journalistic explanatory tool
   - The scenario-card landscape concept (consistency and comparability across tasks/states)
@@ -44,7 +50,7 @@ This iteration focuses on **interpretability, state consistency, and conceptual 
 
 You are allowed to:
 
-- Improve labels, tooltips, legends, and interaction feedback
+- Improve labels, tooltips, legends, and interaction feedback (Text changements; Inline vs tooltip-based explanation)
 - Clarify threshold logic (e.g., 5% rule presentation)
 - Remove ambiguous terminology
 - Improve state transparency (hover, filter, selected)
@@ -54,18 +60,7 @@ Data logic remains unchanged unless a correctness error is explicitly identified
 
 ---
 
-## When to Introduce Test Variants
-
-Do **not** automatically create interpretability variants.
-
-However, if you identify **multiple plausible explanation strategies**, such as:
-
-- Persistent vs contextual guidance
-- Compact vs expanded legend logic
-- Inline vs tooltip-based explanations
-- Static vs dynamic interaction feedback
-
-Then:
+## Introduce Test Variants
 
 - Propose 2–3 clearly differentiated alternatives.
 - Describe them as selectable variants in the test variant system (main-test.js / index-test.html).
@@ -129,9 +124,7 @@ Minor adjustments may be grouped.
 
 ---
 
-### Step 4 — Interpretability Alternatives (Only if necessary)
-
-If a genuine explanation strategy decision arises:
+### Step 4 — Interpretability Alternatives
 
 Present:
 

@@ -26,6 +26,12 @@ All work in this iteration must comply with the **Innovation & Interaction Desig
   - **Data Authority & Dataset Integrity (MANDATORY)**
   - **Start, Stable vs Test Environment (ARCHITECTURE RULE)**
 
+In index-test.html, the option “Standard” (and the version without any variants selected) always means the unchanged Baseline from main-start.js / index-start.html.
+
+The Baseline must never be modified during this phase.
+
+Any suggestion that changes UI structure, explanation strategy, interaction feedback, or interpretive emphasis must be proposed as variants (not as “general improvements”).
+
 - In `Dok/Visualization Context & Framework.md`:
   - The visualization’s role as a journalistic explanatory tool
   - The scenario-card landscape concept (consistency and comparability across tasks/states)
@@ -46,7 +52,7 @@ You are allowed to:
 
 ---
 
-## When to Introduce Test Variants
+## Introduce Test Variants
 
 Innovation always requires structural comparison.
 

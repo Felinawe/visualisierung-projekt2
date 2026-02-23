@@ -28,6 +28,17 @@ All work in this iteration must comply with the **Journalistic Added Value** sec
   - **Data Authority & Dataset Integrity (MANDATORY)**
   - **Start, Stable vs Test Environment (ARCHITECTURE RULE)**
 
+In index-test.html, the option “Standard” (and the version without any variants selected) always means the unchanged Baseline from main-start.js / index-start.html.
+
+The Baseline must never be modified during this phase.
+
+Any suggestion that changes UI structure, explanation strategy, interaction feedback, or interpretive emphasis must be proposed as variants (not as “general improvements”).
+
+- In `Dok/Visualization Context & Framework.md`:
+  - The visualization’s role as a journalistic explanatory tool
+  - The scenario-card landscape concept (consistency and comparability across tasks/states)
+  - The fixed task structure (Task 1–3) as the interpretive framework
+
 - In `Dok/Visualization Context & Framework.md`:
   - The visualization’s role as a journalistic explanatory tool
   - The scenario-card landscape concept (consistency and comparability across tasks/states)
@@ -48,16 +59,7 @@ You are allowed to:
 
 ---
 
-## When to Introduce Test Variants
-
-If multiple plausible entry strategies exist, such as:
-
-- Dominant outcomes first vs borderline outcomes first
-- Stability-focused vs fragility-focused entry
-- Coalition-first vs party-first emphasis
-- Sorted by probability vs sorted by impact
-
-Then:
+## Introduce Test Variants
 
 - Propose 2–3 clearly distinct narrative directions, e.g. with different defaukt states/starting point of visualization.
 - Describe them as selectable variants in the test variant system.
@@ -89,10 +91,6 @@ Identify:
 ---
 
 ### Step 2 — Entry Strategy Proposal
-
-If refinement suffices → propose direct improvements.
-
-If multiple structural entry strategies exist → present alternatives.
 
 For each alternative:
 

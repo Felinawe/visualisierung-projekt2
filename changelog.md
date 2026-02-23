@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.13] - 2026-02-23
+
+### Fixed
+
+- Header-Breite in Redaktionellen Varianten (Serif & Sans): `max-width: none` auf `.subtitle` für `visual-style-calm-serif` und `visual-style-clear-sans` in Test- und Stable-Umgebung gesetzt, um volle Visualization-Breite auszunutzen. Standard und alle anderen Layouts bleiben unverändert.
+- Stable-Text-Struktur mit Test synchronisiert: Header + Intro-Block-Struktur für „Redaktionell Serif" jetzt identisch zwischen Test und Stable.
+
 ## [0.3.12] - 2026-02-22
 
 ### Fixed
