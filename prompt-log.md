@@ -1360,4 +1360,42 @@ In Stable (index-stable.html / main-stable.js), locate the corresponding text st
 
 ---
 
+### 24. Stable-Versionierung: Archivkopie von index-stable und main-stable
+
+**Model:** GPT-5.3-Codex
+
+**Request:** <attachment id="prompt:Versionierung.prompt.md" filePath="/Users/felina/Documents/Master HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Versionierung.prompt.md">
+Prompt instructions file:
+
+-
+
+Create a versioned backup of the current index-stable.html and main-stable.js files.
+
+Procedure:
+
+- Save the current index-stable.html as index-stable-vX.html.
+- Save the current main-stable.js as main-stable-vX.js.
+- Automatically increment X sequentially (v1, v2, v3, …).
+- Never overwrite existing versioned files.
+- The most recent stable version must always remain available under index-stable.html and main-stable.js.
+
+Goal:
+Each manually triggered archive should be stored as its own incrementally numbered stable version so that it can later be deployed separately via GitHub Pages. Before saving, check the highest existing version number and increment it accordingly.
+
+</attachment>
+Follow instructions in [Versionierung.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Versionierung.prompt.md).
+
+**Action:**
+
+- ✅ Höchste vorhandene Backup-Version automatisch geprüft (keine vorhandenen `vX`-Dateien gefunden).
+- ✅ Neue Archivversion ohne Überschreiben erstellt:
+  - `index-stable-v1.html` (Kopie von `index-stable.html`)
+  - `src/main-stable-v1.js` (Kopie von `src/main-stable.js`)
+- ✅ `index-stable.html` und `src/main-stable.js` unverändert belassen (aktuellste Stable-Dateien weiterhin unter Originalnamen verfügbar).
+- ✅ `changelog.md` auf `0.3.15` (PATCH) aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
 **Append Anchor:** Do not remove this line. New entries are inserted above it.

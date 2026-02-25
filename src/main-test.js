@@ -176,7 +176,8 @@ const state = {
 init();
 
 async function init() {
-  const poll = await d3.json("../data/poll-data.json");
+  const pollUrl = new URL("../data/poll-data.json", import.meta.url);
+  const poll = await d3.json(pollUrl);
   state.parties = poll.data.map((entry) => ({
     key: entry.party,
     avg: entry.avg,

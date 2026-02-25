@@ -241,15 +241,55 @@ Framework: D3.js
 
 ## GitHub Pages Deployment Constraints (MANDATORY)
 
-This project is deployed via GitHub Pages. Therefore:
+This project is deployed via **GitHub Pages (repository subpath hosting)**.  
+All paths must work when served from:
 
-- Do not use absolute root paths starting with "/" for assets, scripts, or links.
-  Use relative paths instead (e.g., "./", "../") so the site works under a repository subpath.
-- All internal links and asset references must work when hosted at:
-  https://<user>.github.io/<repo>/
-- Avoid assumptions about a local server root.
-- When adding new files (data, images, JS modules), reference them using relative paths from the HTML entry files.
-- After any path-related change, verify mentally against repo-subpath hosting behavior.
+https://<user>.github.io/<repo>/
+
+These rules apply to all entrypoints and their corresponding JS modules:
+
+- `index-stable.html` + `main-stable.js`
+- `index-start.html` + `main-start.js`
+- `index-test.html` + `main-test.js`
+
+---
+
+### Path Rules
+
+- **Never use root-absolute paths starting with `/`**  
+  Example (❌ wrong):
+  - `/data/poll-data.json`
+  - `/main.js`
+  - `/styles.css`
+
+  On GitHub Pages, `/` points to the domain root — not your repository.
+
+- **Always use relative paths**
+  - `./` for same directory
+  - `../` for parent directory
+
+  All of the following must follow this rule:
+  - `<script src="...">`
+  - `<link href="...">`
+  - `<img src="...">`
+  - `fetch()` or `d3.json()` calls
+  - JS module imports
+
+- **Do not assume a local server root.**  
+  The site must function correctly under a repository subpath.
+
+- **When adding new files** (data, images, JS modules), reference them using
+  relative paths from the HTML entry file or use the `import.meta.url` pattern inside modules.
+
+---
+
+### Recommended Pattern for Data Loading (Most Robust)
+
+Inside `main-*.js`, load local files like this:
+
+```js
+const pollUrl = new URL("./data/poll-data.json", import.meta.url);
+const poll = await d3.json(pollUrl);
 
 ---
 

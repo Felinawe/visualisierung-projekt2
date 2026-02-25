@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.15] - 2026-02-25
+
+### Added
+
+- Versioniertes Stable-Backup erstellt: `index-stable-v1.html` als archivierter Stand von `index-stable.html`.
+- Versioniertes Stable-Backup erstellt: `src/main-stable-v1.js` als archivierter Stand von `src/main-stable.js`.
+
+### Changed
+
+- Manuelle Archivierung folgt jetzt der fortlaufenden `vX`-Konvention ohne Überschreiben bestehender Versionen.
+
+## [0.3.14] - 2026-02-25
+
+### Added
+
+- `index.html` als Standard-Entrypoint ergänzt, der auf `./index-stable.html` weiterleitet, damit die GitHub-Pages-Projekt-URL ohne Dateiname zuverlässig die stabile Version lädt.
+
+### Changed
+
+- Datenladepfade in allen Einstiegsskripten auf robustes GitHub-Pages-Muster umgestellt (`new URL("../data/poll-data.json", import.meta.url)` in `src/main-start.js`, `src/main-test.js`, `src/main-stable.js`).
+
+### Fixed
+
+- Pfadauflösung für Datendatei unter Repository-Subpfaden stabilisiert, um fehlerhafte Ausspielung in GitHub Pages zu vermeiden.
+
 ## [0.3.13] - 2026-02-23
 
 ### Fixed
