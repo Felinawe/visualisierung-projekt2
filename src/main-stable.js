@@ -1,13 +1,14 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
-const PARTY_META = {
-  spd: { label: "SPD", color: "#D94D41" },
-  cxu: { label: "Union", color: "#615952" },
-  gru: { label: "GRÜNE", color: "#84C462" },
-  lin: { label: "LINKE", color: "#B56BB8" },
-  fdp: { label: "FDP", color: "#F5D233" },
-  afd: { label: "AfD", color: "#75C0EB" },
-  bsw: { label: "BSW", color: "#BF3964" },
+let PARTY_META = {};
+const PARTY_COLORS = {
+  spd: "#D94D41",
+  cxu: "#615952",
+  gru: "#84C462",
+  lin: "#B56BB8",
+  fdp: "#F5D233",
+  afd: "#75C0EB",
+  bsw: "#BF3964",
 };
 
 const TASKS = [
@@ -59,11 +60,28 @@ init();
 async function init() {
   const pollUrl = new URL("../data/poll-data.json", import.meta.url);
   const poll = await d3.json(pollUrl);
+
+  const namesByKey = new Map(
+    (poll.metadata?.parties ?? []).map((party) => [party.key, party.name]),
+  );
+
+  PARTY_META = Object.fromEntries(
+    poll.data.map((entry) => [
+      entry.party,
+      {
+        label: namesByKey.get(entry.party) ?? entry.party.toUpperCase(),
+        color: PARTY_COLORS[entry.party] ?? "#9CA3AF",
+      },
+    ]),
+  );
+
   state.parties = poll.data.map((entry) => ({
     key: entry.party,
     avg: entry.avg,
     ciLower: entry.ci_lower,
     ciUpper: entry.ci_upper,
+    prevResult: entry.prev_result,
+    diff: entry.diff,
   }));
 
   regenerateScenarios();

@@ -200,6 +200,17 @@ If clarification is required:
 - Ask clarification questions in the chat response.
   Logging never waits for clarification.
 
+### 8) Entry Header Consistency Rule (MANDATORY)
+
+All prompt-log entry titles must use one consistent numbering style.
+
+Rules:
+
+- Use exactly this header pattern for every entry: `### <number>. <title>`
+- Do not mix styles such as `### 10)` and `### 10.` within the same file.
+- Preserve existing entry numbers; only normalize notation when editing nearby entries or when explicitly requested.
+- After adding or editing an entry, quickly verify heading-style consistency across the file.
+
 ## Changelog Management (MANDATORY)
 
 With every code change (new code, modification, refactor, removal), changelog.md MUST be updated. No exceptions.
@@ -307,13 +318,13 @@ Critical rule:
 
 “Standard” in all variant panels ALWAYS refers to the behavior defined in **Start**.
 
-It must NEVER refer to Stable.  
+It must NEVER refer to Stable.
 It must NEVER be dynamically redefined.
 
 Start is the fixed conceptual baseline.
 
-Stable may deviate from Start.  
-Test may contain alternatives relative to Start.  
+Stable may deviate from Start.
+Test may contain alternatives relative to Start.
 But the conceptual reference point remains Start at all times.
 
 ---
@@ -346,7 +357,7 @@ After successful testing:
 
 Maintain strict separation between:
 
-(A) Test variant system (non-transferable UI controls at the top)  
+(A) Test variant system (non-transferable UI controls at the top)
 (B) Transferable visualization logic (chart rendering and narrative elements)
 
 Do not mix these layers.
@@ -405,7 +416,7 @@ All test variant controls MUST follow the same structured panel format (as defin
 
 ### 1) One Panel = One Decision Dimension
 
-- Each panel represents exactly one design or behavior decision  
+- Each panel represents exactly one design or behavior decision
   (e.g., color strategy, legend placement, layout mode, fading behavior).
 - Panels must not mix multiple independent decisions.
 
@@ -601,3 +612,55 @@ Before finalizing wording, structure, layout, or interaction logic:
 - Every new interaction must create a recognizable new understanding (not just movement). If it doesn’t add interpretive value, remove it.
 
 - Maintain state discipline: interactions must have clear feedback, reversible states, and must not create contradictory signals across Task 1–3.
+## Threshold Communication Rule (MANDATORY)
+
+Critical reference values (such as electoral thresholds or majority requirements) must be both textually and—where interpretively relevant—visually accessible.
+
+Requirements:
+
+- Thresholds must be clearly referenced in text (headline, detail, or labels).
+- If proximity to a threshold is politically significant, consider visual markers (lines, badges, or color coding) where appropriate.
+- Users must never have to infer where a threshold lies or how close a scenario is to it.
+- Distance-to-threshold information should be provided when it aids political interpretation.
+
+Do not add threshold markers for decorative purposes—only when they enhance understanding.
+
+## Sorting Logic Transparency Rule (MANDATORY)
+
+Any ordering that is NOT based on frequency or probability must be explicitly explained to users.
+
+Requirements:
+
+- State clearly why the first item is positioned first (e.g., "largest lead", "smallest gap", "strongest surplus").
+- If there are multiple groups (e.g., "focus group" and "remaining scenarios"), explain the sorting logic for each.
+- Never allow ordering to be implicitly interpreted as a probability or importance ranking unless it genuinely is.
+- If "reversed groups" or secondary orderings exist, their logic must also be transparent.
+
+Examples of ordering criteria that require explanation: lead margin, gap size, distance to threshold, surplus above majority, frequency rank.
+
+## Filter Feedback Rule (MANDATORY)
+
+Every filter or selection change must produce clear, immediate feedback.
+
+Requirements:
+
+- Filter changes should trigger a visual signal (e.g., fade transition, highlight, or confirmation message).
+- Filter labels must be phrased interpretively (as questions or actions), not as technical terms.
+- After a filter change, it must be immediately clear that only the ordering has changed, not the underlying data.
+- If a filter selection produces a meaningless or invalid state, either prevent the selection or communicate why it is not useful.
+
+Avoid silent, instantaneous changes that leave users uncertain whether something happened.
+
+## Denominator Visibility Rule (MANDATORY)
+
+Counts and proportions must always show both the numerator and denominator.
+
+Requirements:
+
+- Use "X of Y" format consistently (not just "X").
+- When highlighting a subset, make clear what happens to the complement (e.g., "60 with majority, 40 without").
+- If only a subset is displayed, state this explicitly.
+- Avoid ambiguity about the reference set or baseline.
+
+This rule prevents misinterpretation of partial counts as totals and ensures transparency about what is being measured.
+```

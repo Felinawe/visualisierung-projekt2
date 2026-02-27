@@ -1,24 +1,25 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
-const PARTY_META = {
-  spd: { label: "SPD", color: "#D94D41" },
-  cxu: { label: "Union", color: "#615952" },
-  gru: { label: "GRÜNE", color: "#84C462" },
-  lin: { label: "LINKE", color: "#B56BB8" },
-  fdp: { label: "FDP", color: "#F5D233" },
-  afd: { label: "AfD", color: "#75C0EB" },
-  bsw: { label: "BSW", color: "#BF3964" },
+let PARTY_META = {};
+const PARTY_COLORS = {
+  spd: "#D94D41",
+  cxu: "#615952",
+  gru: "#84C462",
+  lin: "#B56BB8",
+  fdp: "#F5D233",
+  afd: "#75C0EB",
+  bsw: "#BF3964",
 };
 
 const TASKS = [
   { id: "task1", label: "Führung" },
-  { id: "task2a", label: "Abstand an der Spitze" },
   { id: "task2b", label: "5%-Hürde" },
   { id: "task3", label: "Mehrheiten" },
 ];
 
 const SCENARIO_OPTIONS = [100, 1000];
 const COALITION_PARTY_POOL = ["cxu", "spd", "gru", "fdp", "lin", "bsw"];
+let PARTY_ORDER = [];
 const FREQUENCY_BUCKET = 1;
 const TOTAL_SEATS = 630;
 
@@ -33,6 +34,9 @@ const LAYOUT_TOKENS = {
   bandTitleGap: 18,
   bandGap: 16,
 };
+
+const LEAD_MARGIN_CLOSE_MIN = 0.1;
+const LEAD_MARGIN_CLEAR_MIN = 1.0;
 
 const VARIANT_GROUPS = [
   {
@@ -151,11 +155,93 @@ const VARIANT_GROUPS = [
       },
     ],
   },
+  {
+    id: "hoverBehavior",
+    title: "Hover-Verhalten",
+    options: [
+      {
+        value: "standard",
+        label: "Standard",
+        hint: "Bestehendes Tooltip-Verhalten wie in der bisherigen Testansicht.",
+      },
+      {
+        value: "hover-tooltip",
+        label: "Hover + Tooltip",
+        hint: "Tooltip plus zusätzliche visuelle Hervorhebung.",
+      },
+    ],
+  },
+  {
+    id: "editorialLanguage",
+    title: "Redaktionelle Sprache",
+    options: [
+      {
+        value: "standard",
+        label: "Standard",
+        hint: "Technische Formulierungen wie in Start.",
+      },
+      {
+        value: "journalistic-optimized",
+        label: "Journalistisch optimiert",
+        hint: "Interpretative Sprache, journalistische Formulierungen.",
+      },
+    ],
+  },
+  {
+    id: "explanationDepth",
+    title: "Erklärungstiefe",
+    options: [
+      {
+        value: "standard",
+        label: "Standard",
+        hint: "Minimale Erklärungen wie in Start.",
+      },
+      {
+        value: "extended-transparency",
+        label: "Erweiterte Transparenz",
+        hint: "Sortierlogik, Coalition Pool und Filter-Kontext erklärt.",
+      },
+    ],
+  },
+  {
+    id: "thresholdVisualization",
+    title: "Schwellenwert-Visualisierung",
+    options: [
+      {
+        value: "standard",
+        label: "Standard",
+        hint: "Schwellenwerte nur im Text erwähnt.",
+      },
+      {
+        value: "visual-markers",
+        label: "Mit visuellen Markern",
+        hint: "5%-Hürde und 50%-Mehrheit visuell in Mikrocharts markiert.",
+      },
+    ],
+  },
+  {
+    id: "numericalUnits",
+    title: "Wording in Szenario-Karten",
+    options: [
+      {
+        value: "standard",
+        label: "Standard",
+        hint: "Kurzform wie in Start (z. B. Pkt., Sitz-%).",
+      },
+      {
+        value: "clarified",
+        label: "Journalistische Klarsprache",
+        hint: "Eindeutige Begriffe in allen Perspektiven (z. B. Prozentpunkte).",
+      },
+    ],
+  },
 ];
 
 const state = {
   task: "task1",
   scenarioCount: 100,
+  totalScenarioBase: 0,
+  referenceScenarios: [],
   selectedLeader: null,
   selectedThresholdParty: null,
   selectedCoalition: null,
@@ -170,6 +256,11 @@ const state = {
     groupingDisplay: "segmented-bands",
     microchartDisplay: "standard",
     editorialStyle: "calm-serif",
+    hoverBehavior: "standard",
+    editorialLanguage: "standard",
+    explanationDepth: "standard",
+    thresholdVisualization: "standard",
+    numericalUnits: "standard",
   },
 };
 
@@ -178,17 +269,40 @@ init();
 async function init() {
   const pollUrl = new URL("../data/poll-data.json", import.meta.url);
   const poll = await d3.json(pollUrl);
+
+  const namesByKey = new Map(
+    (poll.metadata?.parties ?? []).map((party) => [party.key, party.name]),
+  );
+
+  PARTY_META = Object.fromEntries(
+    poll.data.map((entry) => [
+      entry.party,
+      {
+        label: namesByKey.get(entry.party) ?? entry.party.toUpperCase(),
+        color: PARTY_COLORS[entry.party] ?? "#9CA3AF",
+      },
+    ]),
+  );
+  PARTY_ORDER = Object.keys(PARTY_META);
+
   state.parties = poll.data.map((entry) => ({
     key: entry.party,
     avg: entry.avg,
     ciLower: entry.ci_lower,
     ciUpper: entry.ci_upper,
+    prevResult: entry.prev_result,
+    diff: entry.diff,
   }));
 
+  state.referenceScenarios = normalizeReferenceScenarios(
+    poll.simulation_reference?.scenarios ?? [],
+  );
+  state.totalScenarioBase = state.referenceScenarios.length;
+
   regenerateScenarios();
-  state.selectedThresholdParty = partyAtHurdle(state.parties);
 
   renderVariantPanel();
+  renderHeader();
   renderTaskButtons();
   renderLegend();
   render();
@@ -201,11 +315,30 @@ async function init() {
 }
 
 function regenerateScenarios() {
-  state.scenarios = d3
-    .range(state.scenarioCount)
-    .map((index) => buildScenario(index, state.parties));
+  state.scenarios = state.referenceScenarios.slice(0, state.scenarioCount);
 
-  state.selectedLeader = dominantLeader(state.scenarios);
+  const leaders = d3.rollup(
+    state.scenarios,
+    (arr) => arr.length,
+    (d) => d.firstParty,
+  );
+  const leaderOptions = [...leaders.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([party]) => party);
+
+  if (!state.selectedLeader || !leaderOptions.includes(state.selectedLeader)) {
+    state.selectedLeader = dominantLeader(state.scenarios);
+  }
+
+  const thresholdOptions = thresholdRelevantParties(state.scenarios);
+  if (
+    !state.selectedThresholdParty ||
+    !thresholdOptions.includes(state.selectedThresholdParty)
+  ) {
+    state.selectedThresholdParty =
+      thresholdOptions[0] ?? partyAtHurdle(state.parties);
+  }
+
   state.coalitionOptions = buildCoalitionOptions(state.scenarios);
   rebuildFrequencyRanking();
 
@@ -254,6 +387,12 @@ function renderVariantPanel() {
         .on("change", () => {
           state.variants[group.id] = option.value;
           renderVariantPanel();
+          if (group.id === "editorialLanguage") {
+            renderHeader();
+          }
+          if (group.id === "editorialLanguage") {
+            renderTaskButtons();
+          }
           render();
         });
 
@@ -290,6 +429,22 @@ function rebuildFrequencyRanking() {
   });
 }
 
+function renderHeader() {
+  const isJournalistic =
+    state.variants.editorialLanguage === "journalistic-optimized";
+
+  const title = isJournalistic
+    ? "Bundestagswahl 2025: Bandbreite möglicher Ergebnisse"
+    : "Bundestagswahl-Simulator: mögliche Wahlausgänge";
+
+  const subtitle = isJournalistic
+    ? "Jede Kachel zeigt ein mögliches Wahlergebnis. Alle Szenarien sind gleich plausibel – die Sortierung ändert sich je nach Frage, die Daten bleiben identisch."
+    : "Jede Kachel zeigt ein mögliches Ergebnis. Alle Kacheln bleiben gleich aufgebaut – die Perspektive ordnet nur neu, damit politische Fragen schneller beantwortet werden können.";
+
+  d3.select(".title").text(title);
+  d3.select(".subtitle").text(subtitle);
+}
+
 function buildSeatSignature(scenario) {
   return Object.keys(PARTY_META)
     .map((party) => {
@@ -306,44 +461,56 @@ function seatShareOfParty(scenario, party) {
   );
 }
 
-function buildScenario(index, parties) {
-  const simulated = parties.map((party) => {
-    const spread = Math.max((party.ciUpper - party.ciLower) / 3.92, 0.15);
-    const raw = d3.randomNormal(party.avg, spread)();
-    return { party: party.key, vote: Math.max(0, raw) };
+function normalizeReferenceScenarios(rawScenarios) {
+  return rawScenarios.map((entry, index) => {
+    const seatsByParty = entry.seats ?? {};
+
+    const voteLikeShares = PARTY_ORDER.map((party) => {
+      const seats = Number(seatsByParty[party] ?? 0);
+      const voteShare = TOTAL_SEATS > 0 ? (seats / TOTAL_SEATS) * 100 : 0;
+      return {
+        party,
+        voteShare,
+      };
+    });
+
+    const seatShares = PARTY_ORDER.map((party) => {
+      const seats = Number(seatsByParty[party] ?? 0);
+      return {
+        party,
+        seats,
+        seatShare: TOTAL_SEATS > 0 ? (seats / TOTAL_SEATS) * 100 : 0,
+      };
+    });
+
+    const sortedVotes = [...voteLikeShares].sort(
+      (a, b) => b.voteShare - a.voteShare,
+    );
+    const first = sortedVotes[0] ?? { party: "cxu", voteShare: 0 };
+    const second = sortedVotes[1] ?? { party: "spd", voteShare: 0 };
+    const leadMargin = first.voteShare - second.voteShare;
+    const rankedSeat = [...seatShares].sort(
+      (a, b) => b.seatShare - a.seatShare,
+    );
+
+    const threshold = Object.fromEntries(
+      PARTY_ORDER.map((party) => {
+        const seats = Number(seatsByParty[party] ?? 0);
+        return [party, seats <= 0];
+      }),
+    );
+
+    return {
+      id: Number(entry.id ?? index + 1),
+      votes: voteLikeShares,
+      seatShares,
+      firstParty: first.party,
+      secondParty: second.party,
+      leadMargin,
+      rankedSeat,
+      threshold,
+    };
   });
-
-  const voteSum = d3.sum(simulated, (d) => d.vote);
-  const normalized = simulated.map((item) => ({
-    ...item,
-    voteShare: voteSum > 0 ? (item.vote / voteSum) * 100 : 0,
-  }));
-
-  const sortedVotes = [...normalized].sort((a, b) => b.voteShare - a.voteShare);
-  const first = sortedVotes[0];
-  const second = sortedVotes[1];
-  const leadMargin = first.voteShare - second.voteShare;
-
-  const aboveHurdle = normalized.filter((d) => d.voteShare >= 5);
-  const validSum = d3.sum(aboveHurdle, (d) => d.voteShare);
-  const seatShares = normalized.map((d) => ({
-    party: d.party,
-    voteShare: d.voteShare,
-    seatShare:
-      d.voteShare >= 5 && validSum > 0 ? (d.voteShare / validSum) * 100 : 0,
-  }));
-
-  const rankedSeat = [...seatShares].sort((a, b) => b.seatShare - a.seatShare);
-
-  return {
-    id: index + 1,
-    votes: normalized,
-    seatShares,
-    firstParty: first.party,
-    secondParty: second.party,
-    leadMargin,
-    rankedSeat,
-  };
 }
 
 function dominantLeader(scenarios) {
@@ -368,10 +535,15 @@ function strongestCoalition(options) {
 }
 
 function buildCoalitionOptions(scenarios) {
+  const eligiblePartySet = new Set(coalitionEligibleParties(scenarios));
+  const coalitionPartyPool = COALITION_PARTY_POOL.filter((party) =>
+    eligiblePartySet.has(party),
+  );
+
   const candidates = [];
 
   [2, 3, 4].forEach((size) => {
-    combinations(COALITION_PARTY_POOL, size).forEach((parties) => {
+    combinations(coalitionPartyPool, size).forEach((parties) => {
       const includesUnion = parties.includes("cxu");
       const includesLinke = parties.includes("lin");
 
@@ -396,6 +568,18 @@ function buildCoalitionOptions(scenarios) {
   );
 }
 
+function coalitionEligibleParties(scenarios) {
+  return COALITION_PARTY_POOL.filter((party) =>
+    scenarios.some((scenario) => seatShareOfParty(scenario, party) > 0),
+  );
+}
+
+function thresholdRelevantParties(scenarios) {
+  return PARTY_ORDER.filter((party) =>
+    scenarios.some((scenario) => isBelowThreshold(scenario, party)),
+  );
+}
+
 function combinations(values, size) {
   const result = [];
 
@@ -417,28 +601,43 @@ function combinations(values, size) {
 }
 
 function coalitionMajority(scenario, parties) {
-  const value = d3.sum(
-    scenario.seatShares.filter((entry) => parties.includes(entry.party)),
-    (d) => d.seatShare,
-  );
-  return value >= 50;
+  const seats = coalitionSeatTotal(scenario, parties);
+  return seats >= Math.floor(TOTAL_SEATS / 2) + 1;
 }
 
 function coalitionSurplus(scenario, parties) {
-  return (
-    d3.sum(
-      scenario.seatShares.filter((entry) => parties.includes(entry.party)),
-      (d) => d.seatShare,
-    ) - 50
+  const seats = coalitionSeatTotal(scenario, parties);
+  const majoritySeats = Math.floor(TOTAL_SEATS / 2) + 1;
+  return ((seats - majoritySeats) / TOTAL_SEATS) * 100;
+}
+
+function coalitionSeatTotal(scenario, parties) {
+  return d3.sum(
+    scenario.seatShares.filter((entry) => parties.includes(entry.party)),
+    (entry) => entry.seats ?? 0,
   );
+}
+
+function isBelowThreshold(scenario, party) {
+  return scenario.threshold?.[party] ?? shareOf(scenario, party) < 5;
 }
 
 function renderTaskButtons() {
   const nav = d3.select("#task-nav");
+  const isJournalistic =
+    state.variants.editorialLanguage === "journalistic-optimized";
+
+  const taskLabels = isJournalistic
+    ? [
+        { id: "task1", label: "Wer führt?" },
+        { id: "task2b", label: "Wer riskiert 5%?" },
+        { id: "task3", label: "Welche Mehrheiten?" },
+      ]
+    : TASKS;
 
   nav
     .selectAll("button")
-    .data(TASKS)
+    .data(taskLabels)
     .join("button")
     .attr("class", (d) => `task-btn ${d.id === state.task ? "active" : ""}`)
     .text((d) => d.label)
@@ -487,9 +686,6 @@ function deriveView() {
   if (state.task === "task1") {
     return task1View();
   }
-  if (state.task === "task2a") {
-    return task2aView();
-  }
   if (state.task === "task2b") {
     return task2bView();
   }
@@ -504,35 +700,69 @@ function task1View() {
   );
 
   const selected = state.selectedLeader;
-  const ordered = [...state.scenarios].sort((a, b) => {
-    const aLead = a.firstParty === selected;
-    const bLead = b.firstParty === selected;
-    if (aLead !== bLead) {
-      return aLead ? -1 : 1;
-    }
-    if (aLead && bLead) {
-      return b.leadMargin - a.leadMargin;
-    }
-    const aDist = Math.abs(a.rankedSeat[0].seatShare - shareOf(a, selected));
-    const bDist = Math.abs(b.rankedSeat[0].seatShare - shareOf(b, selected));
-    return aDist - bDist;
-  });
+  const selectedLeads = state.scenarios.filter(
+    (scenario) => scenario.firstParty === selected,
+  );
+
+  const clearLead = selectedLeads
+    .filter((scenario) => scenario.leadMargin > LEAD_MARGIN_CLEAR_MIN)
+    .sort((a, b) => b.leadMargin - a.leadMargin);
+
+  const closeRace = selectedLeads
+    .filter((scenario) => scenario.leadMargin <= LEAD_MARGIN_CLEAR_MIN)
+    .sort((a, b) => a.leadMargin - b.leadMargin);
+
+  const others = state.scenarios
+    .filter((scenario) => scenario.firstParty !== selected)
+    .sort((a, b) => b.leadMargin - a.leadMargin);
+
+  const ordered = [...clearLead, ...closeRace, ...others];
+  const groupedOrder = new Map(
+    ordered.map((scenario, index) => [scenario.id, index]),
+  );
 
   const selectedCount = leaders.get(selected) ?? 0;
-  const secondLeader = [...leaders.entries()].sort((a, b) => b[1] - a[1])[1];
-  const headline = `${partyName(selected)} liegt in ${selectedCount} von ${state.scenarioCount} Szenarien vorne.`;
-  const detail = secondLeader
-    ? `${partyName(secondLeader[0])} führt in ${secondLeader[1]} Szenarien.`
-    : "Keine weitere Partei übernimmt in nennenswerter Zahl die Führung.";
+  const isJournalistic =
+    state.variants.editorialLanguage === "journalistic-optimized";
+
+  const isExtended =
+    state.variants.explanationDepth === "extended-transparency";
+
+  const title = isJournalistic
+    ? "Wo liegt die gewählte Partei vorn?"
+    : "Wer liegt vorn?";
+  const headline = isJournalistic
+    ? `In ${selectedCount} von ${state.scenarioCount} möglichen Wahlausgängen liegt ${partyName(selected)} an der Spitze.`
+    : `${partyName(selected)} liegt in ${selectedCount} von ${state.scenarioCount} Szenarien vorne.`;
+
+  let detail = isJournalistic
+    ? `Davon zeigen ${clearLead.length} Szenarien eine klare Führung und ${closeRace.length} ein knappes Rennen.`
+    : `Klare Führung: ${clearLead.length} von ${state.scenarioCount} Szenarien. Knappes Rennen: ${closeRace.length} von ${state.scenarioCount} Szenarien.`;
+
+  if (isExtended) {
+    const notLeading = state.scenarioCount - selectedCount;
+    detail = isJournalistic
+      ? `${clearLead.length} Szenarien zeigen eine klare Führung, ${closeRace.length} ein knappes Rennen und ${notLeading} liegen bei anderen führenden Parteien. Die Karten bleiben innerhalb der Gruppen nachvollziehbar geordnet.`
+      : `Klare Führung: ${clearLead.length} von ${state.scenarioCount}, Knappes Rennen: ${closeRace.length} von ${state.scenarioCount}. Sonstige: ${notLeading} von ${state.scenarioCount}. Innerhalb der Gruppen bleibt die Sortierung politisch nachvollziehbar.`;
+  }
 
   return {
-    title: "Wer liegt vorn?",
+    title,
     headline,
     detail,
     ordered,
     highlight: (d) => d.firstParty === selected,
-    cardText: (d) =>
-      `${partyName(d.firstParty)} +${d.leadMargin.toFixed(1)} Pkt.`,
+    cardText: (d) => {
+      if (isClarifiedNumericUnits()) {
+        return `${partyName(d.firstParty)}: Vorsprung +${d.leadMargin.toFixed(1)} Prozentpunkte`;
+      }
+      return `${partyName(d.firstParty)} +${d.leadMargin.toFixed(1)} Pkt.`;
+    },
+    dataMetric: "vote",
+    segmentOrder: (scenario) =>
+      [...scenario.votes]
+        .sort((a, b) => b.voteShare - a.voteShare)
+        .map((entry) => entry.party),
     controls: {
       type: "leader",
       options: [...leaders.entries()]
@@ -540,38 +770,30 @@ function task1View() {
         .map(([party]) => party),
       selected,
     },
-  };
-}
-
-function task2aView() {
-  const ordered = [...state.scenarios].sort(
-    (a, b) => a.leadMargin - b.leadMargin,
-  );
-  const close = ordered.filter((d) => d.leadMargin <= 1.5).length;
-  const medium = ordered.filter(
-    (d) => d.leadMargin > 1.5 && d.leadMargin <= 4,
-  ).length;
-  const clear = state.scenarioCount - close - medium;
-
-  return {
-    title: "Wie eng ist das Rennen an der Spitze?",
-    headline: `${close} Szenarien zeigen ein sehr knappes Rennen, ${clear} Szenarien einen klaren Vorsprung.`,
-    detail: `${medium} Szenarien liegen dazwischen. So wird sichtbar, wie oft die Spitze offen bleibt.`,
-    ordered,
-    highlight: (d) => d.leadMargin <= 1.5,
-    cardText: (d) =>
-      `${partyName(d.firstParty)} vor ${partyName(d.secondParty)} (${d.leadMargin.toFixed(1)} Pkt.)`,
-    controls: { type: "none" },
+    customBandTitle: (scenario) => {
+      if (scenario.firstParty !== selected) {
+        return "Sonstige";
+      }
+      if (scenario.leadMargin > LEAD_MARGIN_CLEAR_MIN) {
+        return "Klare Führung";
+      }
+      return "Knappes Rennen";
+    },
+    customBandSort: (a, b) =>
+      (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+      (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
   };
 }
 
 function task2bView() {
   const selected = state.selectedThresholdParty;
+  const isJournalistic =
+    state.variants.editorialLanguage === "journalistic-optimized";
   const ordered = [...state.scenarios].sort((a, b) => {
     const aShare = shareOf(a, selected);
     const bShare = shareOf(b, selected);
-    const aBelow = aShare < 5;
-    const bBelow = bShare < 5;
+    const aBelow = isBelowThreshold(a, selected);
+    const bBelow = isBelowThreshold(b, selected);
     if (aBelow !== bBelow) {
       return aBelow ? -1 : 1;
     }
@@ -581,26 +803,64 @@ function task2bView() {
     return aShare - 5 - (bShare - 5);
   });
 
-  const belowCount = ordered.filter((d) => shareOf(d, selected) < 5).length;
+  const belowCount = ordered.filter((d) =>
+    isBelowThreshold(d, selected),
+  ).length;
   const aboveCount = state.scenarioCount - belowCount;
 
+  const isExtended =
+    state.variants.explanationDepth === "extended-transparency";
+
+  let detail = `${aboveCount} Szenarien liegen darüber. Die Sortierung zeigt zuerst die klaren Unterschreitungen, danach die knappen Fälle über 5%.`;
+
+  if (isExtended) {
+    detail = `${aboveCount} Szenarien liegen darüber. Vorne: Szenarien unter 5%, sortiert nach Abstand zur Hürde. Hinten: Szenarien über 5%, ebenfalls nach Abstand.`;
+  }
+
+  const title = isJournalistic
+    ? "Wo wird die 5%-Hürde knapp?"
+    : "Wer rutscht unter 5%?";
+
+  const headline = isJournalistic
+    ? `${partyName(selected)} bleibt in ${belowCount} von ${state.scenarioCount} Szenarien unter der 5%-Hürde.`
+    : `${partyName(selected)} liegt in ${belowCount} von ${state.scenarioCount} Szenarien unter 5%.`;
+
+  const editorialDetail = isExtended
+    ? `${aboveCount} Szenarien liegen darüber. Oben stehen die klaren Unterschreitungen, darunter die knappen Fälle über der Hürde.`
+    : `${aboveCount} Szenarien liegen darüber. Die Reihenfolge zeigt zuerst klare Unterschreitungen, danach knappe Fälle über der Hürde.`;
+
   return {
-    title: "Wer rutscht unter 5%?",
-    headline: `${partyName(selected)} liegt in ${belowCount} von ${state.scenarioCount} Szenarien unter 5%.`,
-    detail: `${aboveCount} Szenarien liegen darüber. Die Sortierung zeigt zuerst die klaren Unterschreitungen, danach die knappen Fälle über 5%.`,
+    title,
+    headline,
+    detail: isJournalistic ? editorialDetail : detail,
     ordered,
-    highlight: (d) => shareOf(d, selected) < 5,
-    cardText: (d) =>
-      `${partyName(selected)}: ${shareOf(d, selected).toFixed(1)}%`,
+    highlight: (d) => isBelowThreshold(d, selected),
+    cardText: (d) => {
+      if (!isClarifiedNumericUnits()) {
+        return `${partyName(selected)}: ${shareOf(d, selected).toFixed(1)}%`;
+      }
+      const distanceToThreshold = isBelowThreshold(d, selected)
+        ? -Math.abs(5 - shareOf(d, selected))
+        : Math.abs(shareOf(d, selected) - 5);
+      return `${partyName(selected)}: ${formatThresholdDistanceCard(distanceToThreshold)}`;
+    },
+    dataMetric: "vote",
+    thresholdParty: selected,
+    segmentOrder: () => [
+      selected,
+      ...PARTY_ORDER.filter((party) => party !== selected),
+    ],
     controls: {
       type: "threshold",
-      options: Object.keys(PARTY_META),
+      options: thresholdRelevantParties(state.scenarios),
       selected,
     },
   };
 }
 
 function task3View() {
+  const isJournalistic =
+    state.variants.editorialLanguage === "journalistic-optimized";
   const coalition =
     state.coalitionOptions.find(
       (entry) => entry.id === state.selectedCoalition,
@@ -608,11 +868,15 @@ function task3View() {
 
   if (!coalition) {
     return {
-      title: "Welche Mehrheiten sind möglich?",
-      headline:
-        "Keine der zulässigen Koalitionen erreicht in diesen Szenarien eine Mehrheit.",
-      detail:
-        "Wählen Sie eine andere Perspektive oder ändern Sie die Szenariozahl.",
+      title: isJournalistic
+        ? "Welche Bündnisse hätten eine Mehrheit?"
+        : "Welche Mehrheiten sind möglich?",
+      headline: isJournalistic
+        ? "In dieser Auswahl erreicht derzeit kein zulässiges Bündnis eine parlamentarische Mehrheit."
+        : "Keine der zulässigen Koalitionen erreicht in diesen Szenarien eine Mehrheit.",
+      detail: isJournalistic
+        ? "Wählen Sie ein anderes Bündnis oder ändern Sie die Szenariozahl, um weitere Konstellationen zu prüfen."
+        : "Wählen Sie eine andere Perspektive oder ändern Sie die Szenariozahl.",
       ordered: [...state.scenarios],
       highlight: () => false,
       cardText: () => "Keine Mehrheit",
@@ -642,18 +906,49 @@ function task3View() {
     coalitionMajority(d, coalition.parties),
   ).length;
 
+  const isExtended =
+    state.variants.explanationDepth === "extended-transparency";
+  const noMajority = state.scenarioCount - majorityCount;
+
+  let detail =
+    "Vorne stehen Szenarien mit Mehrheit. Innerhalb der Gruppen sortiert die Ansicht nach klaren bzw. knappen Mehrheiten.";
+
+  if (isExtended) {
+    detail = `${noMajority} Szenarien erreichen keine Mehrheit. Vorne: Szenarien mit Mehrheit, sortiert nach Sitzüberschuss. Hinten: fehlende Mehrheiten, sortiert nach Abstand. Gezeigt werden realistische Koalitionen. AfD-Bündnisse und Union+LINKE-Konstellationen sind ausgeschlossen.`;
+  }
+
+  const title = isJournalistic
+    ? "Welche Bündnisse hätten eine Mehrheit?"
+    : "Welche Mehrheiten sind möglich?";
+
+  const headline = isJournalistic
+    ? `${coalition.label} kommt in ${majorityCount} von ${state.scenarioCount} Szenarien auf eine parlamentarische Mehrheit.`
+    : `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Szenarien eine Mehrheit.`;
+
+  const editorialDetail = isExtended
+    ? `${noMajority} Szenarien bleiben ohne Mehrheit. Oben stehen Mehrheiten mit dem größten Sitzpuffer, darunter Konstellationen knapp unter der Mehrheit.`
+    : "Die Karten zeigen zuerst Konstellationen mit Mehrheit und danach die Fälle, in denen das Bündnis knapp darunter bleibt.";
+
   return {
-    title: "Welche Mehrheiten sind möglich?",
-    headline: `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Szenarien eine Mehrheit.`,
-    detail:
-      "Vorne stehen Szenarien mit Mehrheit. Innerhalb der Gruppen sortiert die Ansicht nach klaren bzw. knappen Mehrheiten.",
+    title,
+    headline,
+    detail: isJournalistic ? editorialDetail : detail,
     ordered,
     highlight: (d) => coalitionMajority(d, coalition.parties),
     cardText: (d) => {
       const value = coalitionSurplus(d, coalition.parties);
+      if (isClarifiedNumericUnits()) {
+        return formatMajorityDistanceCard(value);
+      }
       const label = value >= 0 ? "Mehrheit" : "Fehlt";
       return `${label}: ${Math.abs(value).toFixed(1)} Sitz-%`;
     },
+    dataMetric: "seat",
+    coalitionParties: coalition.parties,
+    segmentOrder: () => [
+      ...coalition.parties,
+      ...PARTY_ORDER.filter((party) => !coalition.parties.includes(party)),
+    ],
     controls: {
       type: "coalition",
       options: state.coalitionOptions.map((d) => d.id),
@@ -682,15 +977,26 @@ function renderSubControls(view) {
   ];
 
   if (view.controls.type !== "none") {
+    const isExtended =
+      state.variants.explanationDepth === "extended-transparency";
+
+    let label;
+    if (view.controls.type === "leader") {
+      label = isExtended
+        ? "Welche Partei soll im Fokus stehen?"
+        : "Fokuspartei Führung:";
+    } else if (view.controls.type === "threshold") {
+      label = isExtended
+        ? "Für welche Partei den Schwellenwert prüfen?"
+        : "Partei an der 5%-Hürde:";
+    } else {
+      label = isExtended ? "Welche Koalition untersuchen?" : "Mehrheitsoption:";
+    }
+
     controlRows.push({
       id: "context",
       fieldClass: "control-context",
-      label:
-        view.controls.type === "leader"
-          ? "Fokuspartei Führung:"
-          : view.controls.type === "threshold"
-            ? "Partei an der 5%-Hürde:"
-            : "Mehrheitsoption:",
+      label,
       options: view.controls.options,
       selected: view.controls.selected,
       text: (d) => {
@@ -748,11 +1054,23 @@ function renderSubControls(view) {
 }
 
 function renderSummary(view) {
+  const isJournalistic =
+    state.variants.editorialLanguage === "journalistic-optimized";
   const summary = d3.select("#summary");
   summary.html("");
   summary.append("h2").text(view.title);
   summary.append("p").text(view.headline);
   summary.append("p").style("margin-top", "6px").text(view.detail);
+
+  if (!isJournalistic) {
+    summary
+      .append("p")
+      .style("margin-top", "6px")
+      .style("color", "var(--text-muted)")
+      .text(
+        `Basis: ${state.scenarioCount} von ${state.totalScenarioBase} festen Referenzszenarien (deterministisch).`,
+      );
+  }
 
   if (isProbabilityLayoutActive()) {
     summary
@@ -959,15 +1277,13 @@ function drawCardContentsCircleOnly(cardGroups, view) {
 
   cardGroups.each(function eachMarker(cardData) {
     const group = d3.select(this);
-    const sorted = [...cardData.scenario.rankedSeat].filter(
-      (entry) => entry.seatShare > 0.4,
-    );
+    const sorted = resolveSegments(cardData.scenario, view);
 
-    const total = d3.sum(sorted, (d) => d.seatShare);
+    const total = d3.sum(sorted, (d) => d.value);
     let startAngle = 0;
 
     sorted.forEach((entry) => {
-      const fraction = entry.seatShare / total;
+      const fraction = total > 0 ? entry.value / total : 0;
       const endAngle = startAngle + fraction * 2 * Math.PI;
 
       const arc = d3
@@ -981,7 +1297,7 @@ function drawCardContentsCircleOnly(cardGroups, view) {
         .append("path")
         .attr("d", arc)
         .attr("transform", `translate(${centerX}, ${centerY})`)
-        .attr("fill", PARTY_META[entry.party].color);
+        .attr("fill", PARTY_META[entry.party]?.color ?? "#d1d5db");
 
       startAngle = endAngle;
     });
@@ -1017,34 +1333,99 @@ function drawCardContentsStandard(cardGroups, view) {
     .attr("y", 13)
     .text((d) => `#${d.rank}`);
 
-  cardGroups
-    .append("text")
-    .attr("class", "card-label")
-    .attr("x", 8)
-    .attr("y", LAYOUT_TOKENS.cardHeight - 8)
-    .text((d) => view.cardText(d.scenario));
+  cardGroups.call((groups) => appendWrappedCardLabel(groups, view));
+
+  const showMarkers =
+    state.variants.thresholdVisualization === "visual-markers";
+  const y = 20;
+  const barHeight = 16;
+  const innerWidth = LAYOUT_TOKENS.cardWidth - 16;
 
   cardGroups.each(function eachCard(cardData) {
     const group = d3.select(this);
-    const sorted = [...cardData.scenario.rankedSeat].filter(
-      (entry) => entry.seatShare > 0.4,
-    );
-    const y = 20;
-    const barHeight = 16;
-    const innerWidth = LAYOUT_TOKENS.cardWidth - 16;
+    const sorted = resolveSegments(cardData.scenario, view);
+    const boundsByParty = new Map();
 
     let startX = 8;
     sorted.forEach((entry) => {
-      const width = Math.max(0, (entry.seatShare / 100) * innerWidth);
+      const width = Math.max(0, (entry.value / 100) * innerWidth);
       group
         .append("rect")
         .attr("x", startX)
         .attr("y", y)
         .attr("width", width)
         .attr("height", barHeight)
-        .attr("fill", PARTY_META[entry.party].color);
+        .attr("fill", PARTY_META[entry.party]?.color ?? "#d1d5db");
+      boundsByParty.set(entry.party, {
+        start: startX,
+        end: startX + width,
+      });
       startX += width;
     });
+
+    if (showMarkers) {
+      if (state.task === "task2b") {
+        const selectedParty = view.thresholdParty;
+        const selectedBounds = selectedParty
+          ? boundsByParty.get(selectedParty)
+          : null;
+        const threshold5X = 8 + (5 / 100) * innerWidth;
+        group
+          .append("line")
+          .attr("x1", threshold5X)
+          .attr("x2", threshold5X)
+          .attr("y1", y - 2)
+          .attr("y2", y + barHeight + 2)
+          .attr("stroke", "var(--text-strong)")
+          .attr("stroke-width", 1)
+          .attr("stroke-dasharray", "2,2")
+          .attr("opacity", 0.6);
+
+        if (selectedBounds) {
+          group
+            .append("line")
+            .attr("x1", selectedBounds.end)
+            .attr("x2", selectedBounds.end)
+            .attr("y1", y - 2)
+            .attr("y2", y + barHeight + 2)
+            .attr(
+              "stroke",
+              PARTY_META[selectedParty]?.color ?? "var(--text-strong)",
+            )
+            .attr("stroke-width", 1.6)
+            .attr("opacity", 0.85);
+        }
+      }
+
+      if (state.task === "task3") {
+        const coalitionShare = coalitionSeatShare(
+          cardData.scenario,
+          view.coalitionParties ?? [],
+        );
+        const coalitionX = 8 + (coalitionShare / 100) * innerWidth;
+        const threshold50X = 8 + (50 / 100) * innerWidth;
+        group
+          .append("line")
+          .attr("x1", threshold50X)
+          .attr("x2", threshold50X)
+          .attr("y1", y - 2)
+          .attr("y2", y + barHeight + 2)
+          .attr("stroke", "var(--text-strong)")
+          .attr("stroke-width", 1)
+          .attr("stroke-dasharray", "2,2")
+          .attr("opacity", 0.6);
+
+        group
+          .append("line")
+          .attr("x1", coalitionX)
+          .attr("x2", coalitionX)
+          .attr("y1", y - 2)
+          .attr("y2", y + barHeight + 2)
+          .attr("stroke", "var(--text-strong)")
+          .attr("stroke-width", 1.8)
+          .attr("opacity", 0.85);
+      }
+    }
   });
 }
 
@@ -1071,24 +1452,17 @@ function drawCardContentsCompact(cardGroups, view) {
     .attr("y", 13)
     .text((d) => `#${d.rank}`);
 
-  cardGroups
-    .append("text")
-    .attr("class", "card-label")
-    .attr("x", 8)
-    .attr("y", LAYOUT_TOKENS.cardHeight - 8)
-    .text((d) => view.cardText(d.scenario));
+  cardGroups.call((groups) => appendWrappedCardLabel(groups, view));
 
   cardGroups.each(function eachCard(cardData) {
     const group = d3.select(this);
-    const sorted = [...cardData.scenario.rankedSeat].filter(
-      (entry) => entry.seatShare > 0.4,
-    );
+    const sorted = resolveSegments(cardData.scenario, view);
 
-    const total = d3.sum(sorted, (d) => d.seatShare);
+    const total = d3.sum(sorted, (d) => d.value);
     let startAngle = 0;
 
     sorted.forEach((entry) => {
-      const fraction = entry.seatShare / total;
+      const fraction = total > 0 ? entry.value / total : 0;
       const endAngle = startAngle + fraction * 2 * Math.PI;
 
       const arc = d3
@@ -1102,7 +1476,7 @@ function drawCardContentsCompact(cardGroups, view) {
         .append("path")
         .attr("d", arc)
         .attr("transform", `translate(${centerX}, ${centerY})`)
-        .attr("fill", PARTY_META[entry.party].color);
+        .attr("fill", PARTY_META[entry.party]?.color ?? "#d1d5db");
 
       startAngle = endAngle;
     });
@@ -1156,6 +1530,26 @@ function rankCards(orderedScenarios) {
 }
 
 function buildGroupedBands(rankedCards, view, titlePrefix) {
+  if (!titlePrefix && view.customBandTitle) {
+    const grouped = d3.group(rankedCards, (entry) =>
+      view.customBandTitle(entry.scenario),
+    );
+    const order = ["Klare Führung", "Knappes Rennen", "Sonstige"];
+
+    return order
+      .map((label) => {
+        const cards = [...(grouped.get(label) ?? [])];
+        if (view.customBandSort) {
+          cards.sort((a, b) => view.customBandSort(a.scenario, b.scenario));
+        }
+        return {
+          title: `${label} (${cards.length})`,
+          cards,
+        };
+      })
+      .filter((band) => band.cards.length > 0);
+  }
+
   if (state.variants.groupingDisplay === "standard") {
     return [
       {
@@ -1281,20 +1675,48 @@ function signedNoise(seed) {
 }
 
 function bindScenarioHover(cardGroups, view) {
-  const panel = ensureScenarioHoverPanel();
+  const hoverMode = state.variants.hoverBehavior ?? "standard";
+  const setHoverState = (node, isHovered) => {
+    d3.select(node).classed("variant-hovered", isHovered);
+  };
 
-  cardGroups
-    .on("mouseenter", function onEnter(event, cardData) {
-      updateScenarioHoverPanel(panel, cardData, view);
-      positionScenarioHoverPanel(panel, event);
-      panel.classed("visible", true);
-    })
-    .on("mousemove", function onMove(event) {
-      positionScenarioHoverPanel(panel, event);
-    })
-    .on("mouseleave", function onLeave() {
-      panel.classed("visible", false);
-    });
+  if (hoverMode === "standard") {
+    const panel = ensureScenarioHoverPanel();
+
+    cardGroups
+      .on("mouseenter", function onEnter(event, cardData) {
+        updateScenarioHoverPanel(panel, cardData, view);
+        positionScenarioHoverPanel(panel, event);
+        panel.classed("visible", true);
+      })
+      .on("mousemove", function onMove(event) {
+        positionScenarioHoverPanel(panel, event);
+      })
+      .on("mouseleave", function onLeave() {
+        panel.classed("visible", false);
+      });
+    return;
+  }
+
+  if (hoverMode === "hover-tooltip") {
+    const panel = ensureScenarioHoverPanel();
+
+    cardGroups
+      .on("mouseenter", function onEnter(event, cardData) {
+        setHoverState(this, true);
+        updateScenarioHoverPanel(panel, cardData, view);
+        positionScenarioHoverPanel(panel, event);
+        panel.classed("visible", true);
+      })
+      .on("mousemove", function onMove(event) {
+        positionScenarioHoverPanel(panel, event);
+      })
+      .on("mouseleave", function onLeave() {
+        setHoverState(this, false);
+        panel.classed("visible", false);
+      });
+    return;
+  }
 }
 
 function ensureScenarioHoverPanel() {
@@ -1310,19 +1732,22 @@ function ensureScenarioHoverPanel() {
 }
 
 function updateScenarioHoverPanel(panel, cardData, view) {
-  const seatRows = buildAbsoluteSeatRows(cardData.scenario);
+  const isSeatView = view.dataMetric === "seat";
+  const rows = isSeatView
+    ? buildAbsoluteSeatRows(cardData.scenario)
+    : buildVoteRows(cardData.scenario, view);
 
   panel.html("");
   panel
     .append("div")
     .attr("class", "scenario-hover-title")
     .text(
-      `Sitzverteilung · #${cardData.rank} · ${view.cardText(cardData.scenario)}`,
+      `${isSeatView ? "Sitzverteilung" : "Stimmenanteile"} · #${cardData.rank} · ${view.cardText(cardData.scenario)}`,
     );
 
   const seats = panel.append("div").attr("class", "scenario-hover-seats");
 
-  seatRows.forEach((row) => {
+  rows.forEach((row) => {
     const entry = seats.append("div").attr("class", "scenario-hover-row");
 
     const party = entry.append("span").attr("class", "scenario-hover-party");
@@ -1335,8 +1760,34 @@ function updateScenarioHoverPanel(panel, cardData, view) {
     entry
       .append("span")
       .attr("class", "scenario-hover-value")
-      .text(`${row.seats} Sitze`);
+      .text(
+        isSeatView ? `${row.seats} Sitze` : `${row.voteShare.toFixed(1)} %`,
+      );
   });
+}
+
+function resolveSegments(scenario, view) {
+  const mode = view.dataMetric === "seat" ? "seat" : "vote";
+  const valueAccessor =
+    mode === "seat"
+      ? (party) => seatShareOfParty(scenario, party)
+      : (party) => shareOf(scenario, party);
+
+  const order = view.segmentOrder
+    ? view.segmentOrder(scenario)
+    : [...PARTY_ORDER];
+
+  return order.map((party) => ({
+    party,
+    value: valueAccessor(party),
+  }));
+}
+
+function buildVoteRows(scenario, view) {
+  return resolveSegments(scenario, view).map((entry) => ({
+    party: entry.party,
+    voteShare: entry.value,
+  }));
 }
 
 function positionScenarioHoverPanel(panel, event) {
@@ -1370,34 +1821,19 @@ function positionScenarioHoverPanel(panel, event) {
 }
 
 function buildAbsoluteSeatRows(scenario) {
-  const byShare = [...scenario.seatShares].sort(
-    (a, b) => b.seatShare - a.seatShare,
+  return [...scenario.seatShares]
+    .map((entry) => ({
+      party: entry.party,
+      seats: entry.seats ?? 0,
+    }))
+    .sort((a, b) => b.seats - a.seats);
+}
+
+function coalitionSeatShare(scenario, parties) {
+  return d3.sum(
+    scenario.seatShares.filter((entry) => parties.includes(entry.party)),
+    (entry) => entry.seatShare,
   );
-  const raw = byShare.map((entry) => ({
-    party: entry.party,
-    exact: (entry.seatShare / 100) * TOTAL_SEATS,
-  }));
-
-  const flooredTotal = d3.sum(raw, (entry) => Math.floor(entry.exact));
-  let missing = Math.max(0, TOTAL_SEATS - flooredTotal);
-
-  const rows = raw.map((entry) => ({
-    party: entry.party,
-    seats: Math.floor(entry.exact),
-    remainder: entry.exact - Math.floor(entry.exact),
-  }));
-
-  rows
-    .sort((a, b) => b.remainder - a.remainder)
-    .forEach((entry) => {
-      if (missing <= 0) return;
-      entry.seats += 1;
-      missing -= 1;
-    });
-
-  return rows
-    .sort((a, b) => b.seats - a.seats)
-    .map((entry) => ({ party: entry.party, seats: entry.seats }));
 }
 
 function applyCircularCollision(positions, collideRadius) {
@@ -1526,4 +1962,110 @@ function partyName(key) {
 
 function shareOf(scenario, party) {
   return scenario.votes.find((d) => d.party === party)?.voteShare ?? 0;
+}
+
+function isClarifiedNumericUnits() {
+  return state.variants.numericalUnits === "clarified";
+}
+
+function formatThresholdDistanceCard(distanceToThreshold) {
+  const direction = distanceToThreshold >= 0 ? "über" : "unter";
+  const absValue = Math.abs(distanceToThreshold).toFixed(1);
+
+  if (isClarifiedNumericUnits()) {
+    return `${direction} 5%: ${absValue} Prozentpunkte`;
+  }
+  return `${direction} 5%: ${absValue} Pkt.`;
+}
+
+function formatMajorityDistanceCard(value) {
+  const direction = value >= 0 ? "über" : "unter";
+  const absValue = Math.abs(value).toFixed(1);
+
+  if (isClarifiedNumericUnits()) {
+    return `${direction} 50%: ${absValue} Prozentpunkte`;
+  }
+  return `${direction} 50%: ${absValue} Sitz-%`;
+}
+
+function appendWrappedCardLabel(cardGroups, view) {
+  const maxWidth = LAYOUT_TOKENS.cardWidth - 16;
+  const lineHeight = 10;
+  const maxLines = 2;
+  const firstLineY = LAYOUT_TOKENS.cardHeight - 18;
+
+  cardGroups.each(function eachCard(cardData) {
+    const label = d3
+      .select(this)
+      .append("text")
+      .attr("class", "card-label")
+      .attr("x", 8)
+      .attr("y", firstLineY);
+
+    wrapCardLabelText(label, view.cardText(cardData.scenario), {
+      maxWidth,
+      maxLines,
+      lineHeight,
+    });
+  });
+}
+
+function wrapCardLabelText(textSelection, content, config) {
+  const words = String(content).trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) {
+    return;
+  }
+
+  const { maxWidth, maxLines, lineHeight } = config;
+  const lines = [];
+  let currentLine = [];
+
+  words.forEach((word) => {
+    const tentativeLine = [...currentLine, word];
+    const tester = textSelection.append("tspan").text(tentativeLine.join(" "));
+    const exceeds = tester.node()?.getComputedTextLength() > maxWidth;
+    tester.remove();
+
+    if (exceeds && currentLine.length > 0) {
+      lines.push(currentLine.join(" "));
+      currentLine = [word];
+    } else {
+      currentLine = tentativeLine;
+    }
+  });
+
+  if (currentLine.length > 0) {
+    lines.push(currentLine.join(" "));
+  }
+
+  const visibleLines = lines.slice(0, maxLines);
+
+  if (lines.length > maxLines) {
+    const lastLineIndex = visibleLines.length - 1;
+    let trimmed = visibleLines[lastLineIndex];
+
+    while (trimmed.length > 0) {
+      const candidate = `${trimmed}…`;
+      const tester = textSelection.append("tspan").text(candidate);
+      const fits = (tester.node()?.getComputedTextLength() ?? 0) <= maxWidth;
+      tester.remove();
+      if (fits) {
+        visibleLines[lastLineIndex] = candidate;
+        break;
+      }
+      trimmed = trimmed.slice(0, -1).trimEnd();
+    }
+
+    if (!visibleLines[lastLineIndex].endsWith("…")) {
+      visibleLines[lastLineIndex] = "…";
+    }
+  }
+
+  visibleLines.forEach((line, index) => {
+    textSelection
+      .append("tspan")
+      .attr("x", 8)
+      .attr("dy", index === 0 ? 0 : lineHeight)
+      .text(line);
+  });
 }

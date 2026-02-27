@@ -434,6 +434,34 @@
         fill: var(--bg-highlight);
       }
 
+      .chart-card.hovered {
+        stroke: var(--card-hover-stroke);
+        stroke-width: 2;
+      }
+
+      circle.hovered {
+        stroke: var(--card-hover-stroke);
+        stroke-width: 2.5;
+      }
+
+      .card-group.variant-hovered {
+        filter: drop-shadow(0 3px 9px var(--shadow-highlight));
+      }
+
+      .card-group.variant-hovered .chart-card {
+        stroke: var(--text-strong);
+        stroke-width: 2.6;
+      }
+
+      .card-group.variant-hovered circle {
+        stroke: var(--text-strong);
+        stroke-width: 3;
+      }
+
+      .card-group.variant-hovered path {
+        opacity: 0.95;
+      }
+
       .card-group.highlighted {
         filter: drop-shadow(0 2px 6px var(--shadow-highlight));
       }
@@ -447,7 +475,9 @@
       }
 
       .card-label {
-        font-size: 10px;
+        font-size: 9px;
+        font-weight: var(--font-weight-label);
+        letter-spacing: var(--letterspacing-ui);
         fill: var(--text-subtle);
       }
 

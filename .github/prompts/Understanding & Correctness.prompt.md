@@ -9,14 +9,12 @@ description: Task: Understanding & Correctness. Use this prompt when refining in
 
 Ensure conceptual clarity and correctness across Task 1–3.
 
-Users must understand:
+Users must understand intuitively:
 
 - what is shown
 - what changes when interacting
 - how states relate to each other
 - how thresholds and comparisons function
-
-This is a controlled refinement phase (Phase 2).
 
 ---
 
@@ -50,7 +48,7 @@ This iteration focuses on **interpretability, state consistency, and conceptual 
 
 You are allowed to:
 
-- Improve labels, tooltips, legends, and interaction feedback (Text changements; Inline vs tooltip-based explanation)
+- Improve title, subtitle, header, labels, tooltips, legends, and interaction feedback (Text changements; Inline vs tooltip-based explanation)
 - Clarify threshold logic (e.g., 5% rule presentation)
 - Remove ambiguous terminology
 - Improve state transparency (hover, filter, selected)
@@ -66,8 +64,6 @@ Data logic remains unchanged unless a correctness error is explicitly identified
 - Describe them as selectable variants in the test variant system (main-test.js / index-test.html).
 - Clearly explain what differs and what remains identical.
 - Do not implement until approval.
-
-Small wording or clarity improvements should be proposed as direct refinements, not variants.
 
 ---
 
@@ -90,6 +86,7 @@ If a change alters interpretive emphasis, surface it explicitly.
 For each task (1–3), identify:
 
 - Likely entry-state questions
+- Title/Subtitle clarity that evokes curiosity without confusion
 - Hover-state questions
 - Click/filter questions
 - Potential misinterpretations

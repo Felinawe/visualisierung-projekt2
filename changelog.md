@@ -5,6 +5,217 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.15] - 2026-02-27
+
+### Added
+
+- `index-stable-v0.html` und `src/main-stable-v0.js` als archivierter Start-Stand (v0) angelegt.
+
+### Changed
+
+- `index-stable-v0.html`: Script-Referenz auf `./src/main-stable-v0.js` umgestellt, damit der archivierte Stand eigenständig lauffähig bleibt.
+- `index-start.html`: auf die aus `Standard` (Test) übernommene Baseline umgestellt, ohne Test-Panel/Variantenauswahl; Script-Referenz auf `./src/main-start.js` gesetzt.
+- `src/main-start.js`: Logik aus dem `Standard`-Pfad der Testumgebung übernommen und auf festen Standardzustand gesetzt; Variant-Panel-Definition/Rendering entfernt.
+
+## [0.4.14] - 2026-02-27
+
+### Changed
+
+- `src/main-test.js`: Badge-Texte für `Führung`, `5%-Hürde` und `Mehrheiten` sprachlich differenziert – `Standard` bleibt Baseline-Wording, `Redaktionelle Sprache = Journalistisch optimiert` nutzt flüssigere newsroom-nahe Formulierungen.
+- `src/main-test.js`: `Basis:`-Hinweis im Summary wird in der journalistischen Variante ausgeblendet, bleibt in der Standard-Variante unverändert sichtbar.
+
+### Changed
+
+- `src/main-test.js`: Szenariologik auf deterministische Referenzbasis (`simulation_reference.scenarios` aus `data/poll-data.json`) umgestellt; keine zufallsbasierte Neugenerierung mehr.
+- `src/main-test.js`: Koalitionsmehrheiten werden pro Szenario über absolute Sitzzahlen berechnet und anschließend über die gewählte Szenariobasis aggregiert (`X von N`).
+- `src/main-test.js`: 5%-Hürdenauswertung auf per-Szenario-Schwellenstatus umgestellt; Aggregation und Hervorhebung erfolgen konsistent über die feste Referenzbasis.
+- `src/main-test.js`: Summary ergänzt um explizite Nennertransparenz (`Basis: N von Gesamt-N Referenzszenarien`) für reproduzierbare Ausgaben.
+- `data/poll-data.json`: Simulationsreferenzdaten (`simulation_reference`) als einzige Datenquelle konsolidiert.
+
+### Removed
+
+- `data/Data Reference/simulations.csv` und `data/Data Reference/simulations.json` entfernt, da die Referenzszenarien in `data/poll-data.json` integriert sind.
+
+## [0.4.13] - 2026-02-27
+
+### Changed
+
+- `src/main-start.js`, `src/main-test.js`, `src/main-stable.js`, `src/main-stable-v1.js`: Datenlade-Logik auf direkte Nutzung von `../data/poll-data.json` umgestellt; Mapping auf `metadata.parties` + `data` bleibt konsistent in allen vier Entry-Skripten.
+
+### Removed
+
+- `src/poll-data-foundation.js` entfernt, damit nur noch eine `poll-data`-Datei im Projekt verbleibt: `data/poll-data.json`.
+
+### Fixed
+
+- Benennungs- und Strukturkonflikt zwischen `poll-data-foundation.js` und `poll-data.json` aufgelöst; die Datengrundlage ist wieder eindeutig in `/data` verankert.
+
+## [0.4.12] - 2026-02-27
+
+### Added
+
+- `src/poll-data-foundation.js`: Gemeinsame Datengrundlagen-Logik ergänzt, die ausschließlich `data/poll-data.json` im neuen Schema (`metadata` + `data`) lädt, validiert und in ein einheitliches Party-Mapping überführt.
+
+### Changed
+
+- `data/poll-data.json`: Datenbasis vollständig auf das neue, vorgegebene JSON aktualisiert (inkl. `metadata.parties`, `polls_num`, `polls_hash` und aktualisierten Parteiwerten).
+- `src/main-start.js`, `src/main-test.js`, `src/main-stable.js`, `src/main-stable-v1.js`: Direkte, versionsspezifische Datenlade-Logik entfernt und auf das gemeinsame Zugriffsmuster über `loadPollDataFoundation()` vereinheitlicht.
+- `index-stable-v1.html`: Skriptverweis auf `./src/main-stable-v1.js` korrigiert, damit die v1-Entry-Point-Datei mit der zugehörigen v1-Logik läuft.
+
+### Fixed
+
+- Inkonsistente Datenpfade und JSON-Struktur-Annahmen zwischen Start/Test/Stable/Stabile-v1 beseitigt; alle vier JS-Einstiege verarbeiten jetzt dieselbe autoritative Datengrundlage ohne Legacy-JSON-Parsing.
+
+## [0.4.11] - 2026-02-26
+
+### Changed
+
+- `src/main-test.js`: In `Führung` reagiert das Summary-Badge jetzt auf die Variante `Redaktionelle Sprache = Journalistisch optimiert` mit einer flüssigeren Formulierung für Titel, Hauptsatz und Detailtext.
+- `src/main-test.js`: Die bestehende Mengenlogik (`Klare Führung` / `Knappes Rennen`) bleibt unverändert, wird in der journalistischen Variante aber interpretativer und newsroom-näher formuliert.
+
+## [0.4.10] - 2026-02-26
+
+### Changed
+
+- `src/main-test.js`: Detailtext in `Führung` zeigt jetzt die konkreten Anzahlen für `Klare Führung` und `Knappes Rennen` (jeweils `X von Y`), statt der bisherigen Schwellenwert-Erklärung.
+- `src/main-test.js`: Perspektive `Abstand an der Spitze` aus der Test-Task-Navigation entfernt; sichtbar bleiben `Führung`, `5%-Hürde` und `Mehrheiten`.
+- `src/main-test.js`: Veraltete Funktion `task2aView()` entfernt, damit die gelöschte Perspektive auch intern nicht mehr verarbeitet wird.
+
+## [0.4.9] - 2026-02-26
+
+### Changed
+
+- `src/main-stable.js`: Perspektive `Führung` neu organisiert; die ausgewählte Partei steuert jetzt direkt Badge, Gruppierung und Sortierung in einem gemeinsamen Modell.
+- `src/main-stable.js`: Szenario-Karten in `Führung` werden in drei Abschnitte gegliedert (`Klare Führung`, `Knappes Rennen`, `Sonstige`) und innerhalb der Abschnitte nach politisch interpretierbarer Führungsstärke sortiert.
+- `src/main-test.js`: Entsprechende Führungslogik aus Stable in der Testumgebung übernommen, inklusive identischer Bandtitel, Sortierung und Highlight-Verhalten.
+
+### Fixed
+
+- `src/main-stable.js`: Badge in `Führung` zeigt jetzt ausschließlich die ausgewählte Partei (z. B. `Union liegt in X von 100 Szenarien vorne`) und nennt keine zweite Partei mehr.
+- `src/main-test.js`: Badge in `Führung` auf dieselbe Logik umgestellt; keine parallele Zweitparteien-Ausgabe mehr.
+
+## [0.4.8] - 2026-02-26
+
+### Fixed
+
+- `src/main-test.js`: Koalitionsoptionen in `Mehrheiten` werden jetzt nur noch aus Parteien gebildet, die in mindestens einem Szenario Sitze erhalten (Bundestagseinzug mindestens 1/100 bzw. 1/1000). Parteien ohne Einzug in allen Szenarien werden aus Koalitionskombinationen ausgeschlossen.
+- `src/main-test.js`: Dropdown in `5%-Hürde` zeigt nur noch Parteien, die in mindestens einem Szenario unter 5% liegen; irrelevante Optionen mit 0 Vorkommen werden nicht mehr angeboten.
+- `src/main-test.js`: Auswahlzustände für Fokuspartei (`5%-Hürde`) werden beim Neuberechnen der Szenarien validiert und bei ungültiger Auswahl auf eine gültige Option zurückgesetzt.
+
+## [0.4.7] - 2026-02-26
+
+### Fixed
+
+- `src/main-test.js`: Option `Standard` im Panel `Wording in Szenario-Karten` wieder strikt auf Baseline-Verhalten (Start-Logik) zurückgeführt.
+- `src/main-test.js`: Baseline-Formulierungen in Szenario-Karten wiederhergestellt:
+  - Führung: `Partei +X Pkt.`
+  - Abstand: `Partei vor Partei (X Pkt.)`
+  - 5%-Hürde: `Partei: X%`
+  - Mehrheiten: `Mehrheit/Fehlt: X Sitz-%`
+
+### Changed
+
+- `src/main-test.js`: Journalistische Klarsprache bleibt als alternative globale Variante aktiv und wirkt weiterhin über alle Perspektiven.
+
+## [0.4.6] - 2026-02-26
+
+### Changed
+
+- `src/main-test.js`: Panel `Numerische Einheiten` journalistisch umbenannt zu `Wording in Szenario-Karten`; Variante `Klargestellt` ersetzt durch `Journalistische Klarsprache` mit selbsterklärenden Hinweisen.
+- `src/main-test.js`: Numerische Darstellung jetzt global vereinheitlicht – die Auswahl im Panel wirkt auf alle Perspektiven (`Führung`, `Abstand an der Spitze`, `5%-Hürde`, `Mehrheiten`) und aktualisiert alle Szenario-Karten konsistent.
+- `src/main-test.js`: Kartenformulierungen über alle Perspektiven auf klare, kompakte journalistische Begriffe umgestellt (inkl. konsistenter Schwellen-Formulierungen `über/unter 5%` und `über/unter 50%`).
+
+### Fixed
+
+- `src/main-test.js`: Kartenlabels unterstützen jetzt automatischen Zeilenumbruch (max. 2 Zeilen mit Ellipse), um Überlappungen bei längeren Formulierungen zu vermeiden.
+- `index-test.html`: Kartenlabel-Typografie verdichtet (`.card-label`), damit längere Labels im Card-Layout stabil und ohne Textkollisionen dargestellt werden.
+
+## [0.4.5] - 2026-02-26
+
+### Fixed
+
+- `src/main-test.js`: Datenbasis je Perspektive logisch getrennt:
+  - `Führung`, `Abstand an der Spitze`, `5%-Hürde` nutzen Stimmenanteile (Zweitstimmen-%)
+  - `Mehrheiten` nutzt Sitzanteile
+- `src/main-test.js`: 5%-Hürdenansicht zeigt alle Parteien in den Segmenten (inkl. Parteien unter 5%) und ordnet die gewählte Partei immer an erster Stelle.
+- `src/main-test.js`: Mehrheitenansicht gruppiert ausgewählte Koalitionsparteien strukturell am Beginn der Balkensegmente.
+- `src/main-test.js`: Hover-Inhalte je View korrigiert:
+  - Stimmen-Views zeigen Prozentwerte
+  - Mehrheiten-View zeigt Sitze
+
+### Changed
+
+- `src/main-test.js`: Marker-Logik angepasst:
+  - 5%-View: Marker auf Basis der ausgewählten Partei + 5%-Referenz
+  - Mehrheiten-View: Marker auf aggregiertem Koalitions-Sitzanteil + 50%-Referenz
+- `src/main-test.js`: Gemeinsamer Segment-Resolver eingeführt, damit Balken-/Icon-Rendering konsistent dieselbe View-Logik nutzt.
+
+## [0.4.4] - 2026-02-26
+
+### Changed
+
+- `src/main-test.js`: Hover-Variante `Hover-Highlight` aus dem Panel `Hover-Verhalten` entfernt.
+- `src/main-test.js`: Hover-Logik vereinfacht auf zwei klare Zustände:
+  - `Standard` = bestehender Tooltip
+  - `Hover + Tooltip` = Tooltip plus zusätzliche visuelle Hervorhebung
+
+## [0.4.3] - 2026-02-26
+
+### Fixed
+
+- `src/main-test.js`: Hover-Variante `Hover-Highlight` korrigiert, damit die Hervorhebung in allen Mikrochart-Modi zuverlässig sichtbar ist.
+- `src/main-test.js`: Hover-Variante `Hover + Tooltip` korrigiert, damit sie klar vom `Standard` unterscheidbar bleibt (Tooltip + deutliche visuelle Hervorhebung).
+
+### Changed
+
+- `index-test.html`: Zusätzliche Styles für `.card-group.variant-hovered` ergänzt (stärkerer Rahmen, Schatten, Kreis-Outline), um die Variantenwirkung deutlich zu machen.
+
+## [0.4.2] - 2026-02-26
+
+### Fixed
+
+- `src/main-test.js`: Hover-Standardverhalten auf den bestehenden Tooltip zurückgesetzt (statt deaktiviert), damit `Standard` wieder dem bisherigen Basisverhalten entspricht.
+
+### Changed
+
+- Panel `Hover-Verhalten` in `src/main-test.js` textlich präzisiert:
+  - `Standard` = bestehendes Tooltip-Verhalten
+  - `Hover + Tooltip` = Tooltip mit zusätzlicher visueller Hervorhebung
+
+## [0.4.1] - 2026-02-26
+
+### Added
+
+- Allgemeine Governance-Regel in `.github/copilot-instructions.md` ergänzt: einheitliches Header-Format für `prompt-log.md`-Einträge (`### <number>. <title>`), um gemischte Notation zu vermeiden.
+
+## [0.4.0] - 2026-02-26
+
+### Added
+
+- **5 neue Test-Panels für Verständlichkeit & Korrektheit:**
+  - Panel "Hover-Verhalten" (Standard, Hover-Highlight, Hover + Tooltip)
+  - Panel "Redaktionelle Sprache" (Standard, Journalistisch optimiert)
+  - Panel "Erklärungstiefe" (Standard, Erweiterte Transparenz)
+  - Panel "Schwellenwert-Visualisierung" (Standard, Mit visuellen Markern)
+  - Panel "Numerische Einheiten" (Standard, Klargestellt)
+- Dynamische Header-Aktualisierung: Titel und Subtitle ändern sich basierend auf "Redaktionelle Sprache"-Variante.
+- Task-Button-Labels ändern sich mit "Redaktionelle Sprache" (z.B. "Wer führt?" statt "Führung").
+- Filter-Labels werden interpretativ formuliert bei "Erweiterte Transparenz" (z.B. "Welche Partei soll im Fokus stehen?" statt "Fokuspartei Führung").
+- Sortierlogik-Erklärungen in allen Task-Details bei "Erweiterte Transparenz".
+- Coalition Pool-Transparenz in Task 3 (AfD-Bündnisse und Union+LINKE ausgeschlossen) bei "Erweiterte Transparenz".
+- Visuelle Schwellenwert-Marker (5%-Hürde in Task 2b, 50%-Mehrheit in Task 3) als gestrichelte Linien in Mikrocharts.
+- Hover-Highlight-CSS für Karten und Kreismarker (.chart-card.hovered, circle.hovered).
+- "Prozentpunkte" statt "Sitz-%" in Task 3 bei "Klargestellt"-Variante.
+
+### Changed
+
+- Text-Varianten in allen Tasks (task1View, task2aView, task2bView, task3View) abhängig von explanationDepth und numericalUnits.
+- bindScenarioHover() jetzt variantenabhängig: kein Hover bei "Standard", Highlight bei "hover-highlight", Tooltip bei "hover-tooltip".
+
+### Fixed
+
+- renderVariantPanel() ruft jetzt renderHeader() und renderTaskButtons() auf, wenn editorialLanguage-Variante geändert wird.
+
 ## [0.3.15] - 2026-02-25
 
 ### Added

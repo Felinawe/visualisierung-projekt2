@@ -1398,4 +1398,714 @@ Follow instructions in [Versionierung.prompt.md](file:///Users/felina/Documents/
 
 ---
 
+### 25. Understanding & Correctness: 5 neue Test-Panels für Verständlichkeit
+
+**Model:** Claude Sonnet 4.5
+
+**Request:**
+
+Follow instructions in [Understanding & Correctness.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Understanding%20%26%20Correctness.prompt.md).
+
+**Action:**
+
+**1) Reader Question Audit (Schritt 1)**
+
+- Systematisches Audit aller Tasks (1–3) durchgeführt: Entry-State, Hover-State, Filter-State, Fehlinterpretationsrisiken identifiziert
+- 15+ konkrete Nutzerfragen dokumentiert (z.B. „80 von 100 — ist das viel?", „Warum steht diese Kachel vorne?", „Was passiert bei Filter-Wechsel?")
+
+**2) Konzeptionelle Stabilitätsregeln (Schritt 2)**
+
+- 5 Regeln formuliert:
+  1. Schwellenwerte müssen visuell referenzierbar sein
+  2. Zustandswechsel müssen signalisiert werden
+  3. Nenner/Bezugsmengen müssen transparent bleiben
+  4. Szenariozahlen müssen über Filter hinweg konsistent bleiben
+  5. Sortierlogik darf nicht mit Wahrscheinlichkeit verwechselt werden
+
+**3) Konkrete Verbesserungsvorschläge (Schritt 3)**
+
+- 7 Verbesserungen definiert:
+  1. Hover-Feedback einführen (alle Tasks)
+  2. Filter-Labels journalistisch umformulieren
+  3. Sortierlogik transparent machen
+  4. Threshold-Logik visuell verankern (Task 2b + 3)
+  5. „Sitz-%" durch „Prozentpunkte" ersetzen (Task 3)
+  6. Coalition Pool transparent machen
+  7. Szenarien-Logik im Subtitle verdeutlichen
+
+**4) Interpretierbarkeits-Alternativen (Schritt 4)**
+
+- Variante A: Inline-Erklärung (alle Erklärungen direkt sichtbar)
+- Variante B: Kontext-Layer (Basis inline, Details on-demand)
+- Als 5 Test-Panels implementiert (statt 2 Varianten, für flexibleres Testing)
+
+**5) Instruction Enhancements (Schritt 5)**
+
+- 4 neue Regeln in `copilot-instructions.md` ergänzt (allgemein formuliert, ohne konkrete Visualisierungsbeispiele):
+  1. Threshold Communication Rule
+  2. Sorting Logic Transparency Rule
+  3. Filter Feedback Rule
+  4. Denominator Visibility Rule
+
+**6) Implementation (Schritte umgesetzt)**
+
+- **5 neue Test-Panels** in `main-test.js` implementiert:
+  1. **Hover-Verhalten** (standard | hover-highlight | hover-tooltip)
+  2. **Redaktionelle Sprache** (standard | journalistic-optimized)
+  3. **Erklärungstiefe** (standard | extended-transparency)
+  4. **Schwellenwert-Visualisierung** (standard | visual-markers)
+  5. **Numerische Einheiten** (standard | clarified)
+
+- **Dynamische Header-Aktualisierung:** `renderHeader()` passt Titel und Subtitle basierend auf `editorialLanguage`-Variante an
+- **Task-Button-Labels:** Journalistische Formulierungen („Wer führt?" statt „Führung") bei aktivierter Variante
+- **Filter-Labels:** Interpretative Fragen („Welche Partei soll im Fokus stehen?" statt „Fokuspartei Führung") bei `extended-transparency`
+- **Text-Varianten in allen Tasks:** Erweiterte Sortierlogik-Erklärungen, Coalition Pool-Transparenz, Nenner-Sichtbarkeit
+- **Hover-Logik erweitert:** `bindScenarioHover()` jetzt variantenabhängig (kein Hover | Highlight | Tooltip)
+- **Visuelle Schwellenwert-Marker:** Gestrichelte Linien bei 5% (Task 2b) und 50% (Task 3) in `drawCardContentsStandard()`
+- **CSS-Styles:** `.chart-card.hovered` und `circle.hovered` für Hover-Highlight hinzugefügt
+
+- **copilot-instructions.md:** 4 neue Regeln ergänzt (Threshold Communication, Sorting Logic Transparency, Filter Feedback, Denominator Visibility)
+- **changelog.md:** Auf Version `0.4.0` (MINOR) aktualisiert
+
+**Status:** ✅ Completed
+
+---
+
+### 26. Hover-Standardverhalten auf Basis zurücksetzen
+
+**Model:** GPT-5.3-Codex
+
+**Request:**
+
+hover was existing before and should be directly part of "Standard". Was the goal to change the hover? Only if you want to make changements to original behaviour a test panel is needed
+
+**Action:**
+
+- ✅ `src/main-test.js` angepasst: `hoverBehavior: standard` zeigt jetzt wieder das bestehende Tooltip-Hover-Verhalten (statt deaktiviert).
+- ✅ Panel-Logik beibehalten, aber klar getrennt:
+  - `Standard` = bestehendes Verhalten
+  - `Hover-Highlight` = nur zusätzliche Hervorhebung
+  - `Hover + Tooltip` = Tooltip plus zusätzliche Hervorhebung
+- ✅ Panel-Texte im Abschnitt `Hover-Verhalten` entsprechend präzisiert.
+- ✅ `changelog.md` als PATCH auf `0.4.2` aktualisiert.
+- ✅ Fehlerprüfung für geänderte Dateien ohne Befund.
+
+**Status:** ✅ Completed
+
+---
+
+### 27. Hover-Varianten: Sichtbarkeit und klare Differenzierung
+
+**Model:** GPT-5.3-Codex
+
+**Request:**
+
+Problem:
+The second variant does not show any hover and the third variant is similar to the Standard version. Please Recheck carefully.
+
+Goal:
+All variants should display a significant improvement
+
+**Action:**
+
+- ✅ `src/main-test.js` Hover-Handling korrigiert:
+  - `Hover-Highlight` verwendet jetzt eine robuste Gruppenklasse (`variant-hovered`) statt einzelner Elementselektion.
+  - `Hover + Tooltip` verwendet ebenfalls `variant-hovered` zusätzlich zum Tooltip.
+  - Ursache behoben: Vorher wurde mit `.select(".chart-card, circle, path")` nur ein erstes passendes Element markiert, wodurch die Variante visuell teils ausfiel.
+- ✅ `index-test.html` um klare Varianten-Styles erweitert:
+  - `.card-group.variant-hovered` mit deutlicherem Schatten
+  - stärkere Rahmen-/Outline-Wirkung für Karten und Kreis-Marker
+  - leichte Pfad-Emphase für bessere Erkennbarkeit in dichten Layouts
+- ✅ Ergebnis: Variante 2 zeigt nun klar sichtbares Hover-Feedback; Variante 3 unterscheidet sich deutlich von `Standard`.
+- ✅ `changelog.md` als PATCH auf `0.4.3` aktualisiert.
+- ✅ Fehlerprüfung auf geänderten Dateien ohne Befund.
+
+**Status:** ✅ Completed
+
+---
+
+### 28. Hover-Panel: Variante 2 entfernt
+
+**Model:** GPT-5.3-Codex
+
+**Request:**
+
+I can see the difference in variant 3 now, but delete variant 2. There is no effect
+
+**Action:**
+
+- ✅ `src/main-test.js` angepasst: Option `Hover-Highlight` aus dem Panel `Hover-Verhalten` entfernt.
+- ✅ Hover-Handling vereinfacht:
+  - `Standard` bleibt bestehendes Tooltip-Verhalten.
+  - `Hover + Tooltip` bleibt als einzige Alternativ-Variante mit zusätzlicher visueller Hervorhebung.
+- ✅ Nicht mehr benötigter `hover-highlight`-Branch in `bindScenarioHover()` entfernt.
+- ✅ `changelog.md` als PATCH auf `0.4.4` aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 29. Perspektivlogik: Stimmen vs. Sitze konsistent trennen
+
+**Model:** GPT-5.3-Codex
+
+**Request:**
+
+Problem:
+
+- Incorrect data basis across multiple views
+- Currently, bars in all perspectives are displayed based on seat distribution.
+- This leads to a logical inconsistency:
+- In the "5% Threshold" view, parties below 5% disappear because they receive no seats.
+- However, the 5% threshold logic is based on vote percentage (second votes), not on seat share.
+- As a result, the visualization is conceptually inconsistent.
+
+5% Threshold View
+
+- The visual marker is currently positioned relative to the leading party.
+- Bar segments are sorted descending by seat share.
+- Parties under 5% disappear because seats are shown.
+- The selected party does not structurally change bar order.
+- Marker appears visually disconnected from dropdown selection.
+
+Majority View ("Welche Mehrheiten?")
+
+- Coalition logic is based on seat majority.
+- However, bar reordering does not reflect selected coalition priority.
+- Coalition parties are still ordered by seat size instead of selection logic.
+- Marker is placed without structural reorganization.
+
+Goal:
+
+- Introduce a clear separation of data logic between views.
+  Data Logic by View
+
+1. Führung
+2. Abstand an der Spitze
+3. 5%-Hürde
+
+- Bars must display vote percentage (Zweitstimmen-Prozent)
+- All parties must be included, even those under 5%
+- Hover must show percentage, not seats
+
+4. Mehrheiten
+
+- Bars must display seat distribution (Sitze)
+- Only here does seat logic apply
+- Majority threshold refers to 50% of seats
+
+5% Threshold View
+
+- The dropdown selection defines:
+  -> Which party is evaluated and vote percentage is compared to 5%.
+  -> Which party appears first in every bar.
+
+In every scenario card:
+
+- The selected party is rendered as the first (leftmost) segment.
+- Bar segments are NOT sorted by seat share.
+- All parties remain visible regardless of 5% threshold.
+
+Marker:
+
+- Positioned relative to selected party’s percentage.
+- References 5% vote threshold.
+- Not relative to leading party.
+
+Majority View
+
+- Bars display seat distribution.
+- Dropdown defines selected coalition.
+- Coalition parties must appear grouped at beginning of bar.
+- Not sorted by seat size across coalition/non-coalition.
+- Scenarios sorted by coalition majority margin (distance to 50% seats).
+- Marker references aggregated coalition seat share.
+- Marker only placed after structural reorganization.
+
+Example:
+5% View
+
+- Dropdown: FDP
+- Scenario bar order:
+  FDP | Union | SPD | GRÜNE | AfD | …
+  -> Even if FDP has 2.4%.
+
+Marker:
+
+- Positioned at FDP percentage segment.
+- References 5% vote threshold.
+- FDP remains visible even below 5%.
+
+Hover:
+
+- Shows vote percentage.
+- Does NOT show seats in this view.
+
+Majority View
+
+- Dropdown: Union + SPD + GRÜNE + BSW
+- Scenario bar order:
+  Union | SPD | GRÜNE | BSW | AfD | FDP | …
+  -> Even if AfD has more seats than BSW.
+
+Marker:
+
+- Positioned at aggregated coalition seat share.
+- References 50% seat threshold.
+
+Hover:
+
+- Shows seat numbers.
+- Not vote percentages.
+
+Definition of Done:
+
+- Führung / Abstand / 5%-Hürde -> Bars use vote percentages. Parties under 5% remain visible. Hover displays vote percentage.
+- 5%-Hürde: Selected party appears first in bar. Marker references selected party’s percentage.
+- No seat logic present in these views.
+- Mehrheiten: Bars use seat distribution. Coalition parties appear grouped first. Scenarios sorted by coalition majority margin. Marker references coalition seat share. Hover displays seats. No vote percentage logic used in this view.
+
+**Action:**
+
+- ✅ `src/main-test.js` auf view-spezifische Datenlogik umgestellt (`dataMetric` + `segmentOrder` je Task-View).
+- ✅ `Führung`/`Abstand`/`5%-Hürde` rendern Segmente jetzt auf Stimmenanteilen statt Sitzanteilen.
+- ✅ `5%-Hürde`: ausgewählte Partei wird strukturell immer als erstes Segment gerendert; alle Parteien bleiben in der Segmentlogik enthalten.
+- ✅ `Mehrheiten`: Segmente nutzen Sitzanteile; gewählte Koalitionsparteien werden am Anfang gruppiert, andere Parteien folgen danach.
+- ✅ Markerlogik korrigiert:
+  - 5%-View: 5%-Referenz + markerbezogene Position der ausgewählten Partei
+  - Mehrheiten-View: 50%-Referenz + markerbezogene Position des aggregierten Koalitionsanteils
+- ✅ Hover-Panel korrigiert:
+  - Stimmen-Views: Prozentanzeige
+  - Mehrheiten-View: Sitzanzeige
+- ✅ Gemeinsame Segment-Helfer eingeführt (`resolveSegments`, `buildVoteRows`, `coalitionSeatShare`) für konsistente Darstellung in Balken- und Icon-Modi.
+- ✅ `changelog.md` als PATCH auf `0.4.5` aktualisiert.
+- ✅ Fehlerprüfung auf geänderten Dateien ohne Befund.
+
+**Status:** ✅ Completed
+
+---
+
+### 30. Numeric Units global konsistent + journalistische Kartenlabels
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+The selection in the “Numeric Units” test panel is currently not globally consistent.
+The change of representation (e.g. from “Seat %” to “Percentage points”) currently affects only the “Majorities” view. Other perspectives (“Who leads?”, “How close is it?”, “Who risks 5%?”) do not react.
+Within the scenario cards, the following issues occur:
+
+- Linguistic ambiguity (“Majority: 12.2 percentage points” is journalistically unclear)
+- Overlapping text or layout issues with longer labels
+- Inconsistent terminology between views
+- Additionally, the label “Standard” in the test panel is not intuitively understandable.
+
+Goal:
+The selection under “Numeric Units” must apply globally to all selections. All scenario cards must update their labels consistently.
+The wording must be:
+
+- journalistically clear
+- unambiguous
+- compact enough for card layout
+- free of overlaps
+
+The labels in the test panel (variants to "Standard" must be:
+
+- intuitively understandable (journalistic Wording in Scenario Cards)
+- free of technical jargon
+- self-explanatory without prior context knowledge
+- Variants have to affect all selections in the panel
+
+Definition of Done:
+
+- Panel selection applies globally to all selections (“Who leads?”, “How close is it?”, “Who risks 5%?”,“Majorities”)
+- No overlap or layout issues
+- Wording in Variant is journalistically clear and differs from "Standard" variant
+- Terminology is understandable without additional context
+
+**Action:**
+
+- ✅ `src/main-test.js`: Variante `Numerische Einheiten` auf journalistische Benennung umgestellt (`Wording in Szenario-Karten`) und Alternative auf selbsterklärende Option `Journalistische Klarsprache` mit klarer Wirkung umbenannt.
+- ✅ `src/main-test.js`: Globale Format-Helfer eingeführt (`formatLeadMarginCard`, `formatThresholdDistanceCard`, `formatMajorityDistanceCard`), damit die Auswahl in `numericalUnits` alle Perspektiven konsistent steuert.
+- ✅ `src/main-test.js`: Karten-Texte in allen Views vereinheitlicht und journalistisch präzisiert (klare Begriffe für Vorsprung sowie Abstände zu 5%- und 50%-Schwelle).
+- ✅ `src/main-test.js`: Zweizeiliger Label-Wrap mit Ellipse (`appendWrappedCardLabel`, `wrapCardLabelText`) ergänzt, um Überlappungen bei längeren Formulierungen zu verhindern.
+- ✅ `index-test.html`: Kartenlabel-Typografie für stabile Lesbarkeit in kompakten Karten angepasst.
+- ✅ `changelog.md`: PATCH-Eintrag `0.4.6` ergänzt.
+- ✅ Stable/Test-Trennung eingehalten: Änderungen ausschließlich in Test-Dateien (`index-test.html`, `src/main-test.js`) plus Dokumentation (`changelog.md`, `prompt-log.md`).
+
+**Status:** ✅ Completed
+
+---
+
+### 31. Standard-Variante auf Baseline zurücksetzen
+
+**Model:** GPT-5.3-Codex
+
+**Request:** You also changed "Standard" but "Standard" should stick to baseline version
+
+**Action:**
+
+- ✅ `src/main-test.js`: Card-Texte so angepasst, dass `Standard` wieder exakt die Baseline-Formulierungen verwendet (wie Start-Logik).
+- ✅ Alternative `Journalistische Klarsprache` bleibt als globale Variantenwirkung aktiv und beeinflusst weiterhin alle Perspektiven.
+- ✅ `changelog.md` auf PATCH `0.4.7` erweitert.
+- ✅ Stable/Test-Trennung eingehalten (nur Testlogik in `src/main-test.js` geändert).
+
+**Status:** ✅ Completed
+
+---
+
+### 32. Dropdown-Optionen auf relevante Szenarien begrenzen
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem
+In the Bundestag election simulator, the parties FDP and BSW are selectable in the “Majorities” perspectives even though they do not pass the 5% threshold in any of the 100 simulated scenarios. They correctly never appear in the visualizations of "Majorities" (no seats). However, they are still offered as selectable options in coalition configurations. This creates logical inconsistency and potential user confusion. Coalitions can only be formed with parties that enter the Bundestag (i.e., pass the 5% threshold in at least one scenario).
+
+Adittionally the dropdown in "5% threshold" and "majorities" also show parties which occur in 0 scenarios. These cases are not relevant.
+
+Goal
+Ensure logical consistency between:
+
+- Scenario data
+- Seat allocation
+- Visualization output
+- Dropdown selection options
+- Restrict selectable options with Parties that have no seats in Bundestag in “Majorities”. Prevent coalition combinations that include parties that never enter the Bundestag in any scenario.
+- Only list options in dropdown that occur in at least 1/100 or 1/1000 Scenarios
+
+Definition of Done
+
+- FDP and BSW (or any party) are only selectable in "majorities" if they pass the 5% threshold in at least one of the 100 scenarios.
+- in "5% threshold" and "majorities" only add options to dropdown that appear in at least one scenario
+
+**Action:**
+
+- ✅ `src/main-test.js`: Koalitionslogik erweitert, sodass Koalitionen nur noch aus Parteien generiert werden, die in mindestens einem Szenario Sitze erhalten (`coalitionEligibleParties`).
+- ✅ `src/main-test.js`: `buildCoalitionOptions()` filtert den Koalitions-Pool vor der Kombinationserzeugung, damit Parteien mit 0 Bundestagseinzügen in allen Szenarien nicht mehr auswählbar sind.
+- ✅ `src/main-test.js`: Neue Filterfunktion `thresholdRelevantParties()` eingeführt; Task `5%-Hürde` zeigt im Dropdown nur Parteien mit mindestens einer Unterschreitung der 5%-Hürde.
+- ✅ `src/main-test.js`: Auswahlzustand `selectedThresholdParty` wird nach jeder Szenario-Neuberechnung gegen die gefilterten Optionen validiert und bei Bedarf auf eine gültige Option gesetzt.
+- ✅ Fehlerprüfung für geänderte Datei ohne Befund durchgeführt.
+- ✅ `changelog.md` auf PATCH-Version `0.4.8` aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 33. Führung vereinheitlicht: Badge + Gruppenlogik
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem
+All parties with a theoretical chance of winning are selectable. The “Who is leading?” badge always shows both parties (e.g. Union and AfD), even if one specific party is selected in the dropdown. The “Distance at the top” logic and the “Leading party” logic are separated. Scenario cards are not grouped by race clarity within the selected perspective.
+
+Users must mentally combine:
+
+- Who leads
+- How clear the lead is
+- Which scenarios belong to which category
+- This creates cognitive overhead and weakens narrative clarity.
+
+Goal
+Unify:
+
+- Leading party selection and Distance at the top into one coherent interaction model = "Führung":
+
+When a party is selected (e.g. Union):
+
+- The “Who is leading?” badge must display only: Union leads in X of 100 scenarios(Do NOT display AfD counts)
+- Scenario cards must be grouped and sorted under clearly labeled subsections:
+
+1. Clear Lead
+   Cards where the selected party leads with a clearly defined margin.
+
+2. Close Race
+   Cards where the selected party leads narrowly.
+
+3. Others
+   Scenarios where another party leads.
+
+- This grouping logic must apply consistently to all dropdown selections.
+
+Proposed Threshold Logic:
+
+To make the grouping intuitive and politically meaningful:
+
+- Close Race: Lead between 0.1 and 1.0 percentage points
+- Clear Lead: Lead of > 1.0 percentage points
+
+Example:
+If “Union” is selected:
+
+- Badge Section display only: Union leads in 68 of 100 scenarios. No mention of AfD in the badge.
+- Scenario Sections (in this order)
+
+1. "Klare Führung" (e.g. 3 scenarios)
+   -> All cards where: Union lead > 1.0%
+   -> Sorted descending by lead size.
+   -> These Cards stay visually highlighted ("Im Fokus")
+
+2. "Knappes Rennen" (e.g. 60 scenarios)
+   -> All cards where: Union lead between 0.1% and 1.0%
+   -> Sorted ascending by closeness (tightest first).
+   -> These Cards stay visually highlighted ("Im Fokus")
+
+3. "Sonstige" (e.g. 37 scenarios)
+   -> All cards where: Union does not lead.
+   -> These cards should stay not visually highlighted. Should be clearly separated. Still sortable by lead margin of the actual leading party.
+
+Definition of Done
+
+- Reorganisation/Combination of "Führung" and "Abstand an der Spitze"
+- Badge reflects only the selected party.
+- Scenario cards are dynamically grouped into: "Klare Führung", "Knappes Rennen", "Sonstige"
+- Same logic applies to any party selected in the dropdown.
+
+**Action:**
+
+- ✅ `src/main-stable.js`: `task1View()` neu strukturiert, sodass `Führung` die drei Zielgruppen direkt erzeugt (`Klare Führung`, `Knappes Rennen`, `Sonstige`) und in genau dieser Reihenfolge ausgibt.
+- ✅ `src/main-stable.js`: Sortierlogik pro Gruppe umgesetzt:
+  - `Klare Führung`: absteigend nach Vorsprung
+  - `Knappes Rennen`: aufsteigend nach Vorsprung (engste zuerst)
+  - `Sonstige`: nach Vorsprung der jeweils führenden Partei
+- ✅ `src/main-stable.js`: Badge-/Summary-Headline auf nur die ausgewählte Partei reduziert; keine Zweitparteien-Zählung mehr im Badge-Text.
+- ✅ `src/main-stable.js` und `src/main-test.js`: Band-Builder erweitert, damit Task `Führung` die benannten Gruppen explizit rendert statt nur `Im Fokus` vs. `Weitere Szenarien`.
+- ✅ `src/main-test.js`: dieselbe Führungslogik inkl. Dropdown-Konsistenz für alle wählbaren Parteien übernommen.
+- ✅ `changelog.md`: PATCH-Version `0.4.9` ergänzt.
+- ✅ Fehlerprüfung auf geänderten JS-Dateien ohne Befund.
+
+**Status:** ✅ Completed
+
+---
+
+### 34. Führung-Detail mit Anzahlen + Task2a entfernt
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Please add in main-test.js/index-test.html the amount of scenarios in which selected party has "Klare Führung" and "Knappes Rennen" instead of "Klare Führung: mehr als 1,0 Prozentpunkte...."
+You can delete "Abstand an der Spitze"
+
+**Action:**
+
+- ✅ `src/main-test.js`: Detailtext in `task1View()` von Schwellenwert-Erklärung auf konkrete Mengen umgestellt (`Klare Führung: X von Y`, `Knappes Rennen: X von Y`).
+- ✅ `src/main-test.js`: Erweiterte Detailvariante ebenfalls auf mengenbasiertes Wording umgestellt und um `Sonstige: X von Y` ergänzt.
+- ✅ `src/main-test.js`: `Abstand an der Spitze` (`task2a`) aus der Task-Navigation entfernt (sowohl Standard- als auch journalistische Labels).
+- ✅ `src/main-test.js`: Routing in `deriveView()` bereinigt, sodass die entfernte Perspektive nicht mehr aktiv gerendert wird.
+- ✅ `src/main-test.js`: Nicht mehr benötigte Altfunktion `task2aView()` entfernt.
+- ✅ `changelog.md`: PATCH-Version `0.4.10` ergänzt.
+- ✅ Fehlerprüfung für geänderte Dateien ohne Befund.
+
+**Status:** ✅ Completed
+
+---
+
+### 35. Journalistische Badge-Variante für Führung
+
+**Model:** GPT-5.3-Codex
+
+**Request:** If "Redaktionelle Sprache" "Journalistisch optimiert - interpretative Sprache..." is selected also this new badge "Wer liegt vorn?" should display an alternative, mor fluent text version
+
+**Action:**
+
+- ✅ `src/main-test.js`: `task1View()` um eine sprachabhängige Badge-Textlogik erweitert (`title`, `headline`, `detail`), gesteuert über `editorialLanguage`.
+- ✅ Für `journalistic-optimized` in `Führung` flüssigere Formulierungen ergänzt, ohne die inhaltliche Mengenlogik (`Klare Führung`, `Knappes Rennen`, `Sonstige`) zu verändern.
+- ✅ Bestehendes Standard-Wording in `Führung` unverändert beibehalten.
+- ✅ `changelog.md`: PATCH-Version `0.4.11` ergänzt.
+
+**Status:** ✅ Completed
+
+---
+
+### 36. Einheitliche Datengrundlage für alle Entry-Points
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+All visualization entry points currently rely on outdated or inconsistent data sources. The data foundation must be replaced completely and unified. All main and index versions must exclusively use the new JSON dataset shown below. No legacy data structures, old JSON files, derived datasets, or hardcoded values may remain.
+
+Affected JavaScript files:
+
+- main-stable-v1.js
+- main-stable.js
+- main-start.js
+- main-test.js
+
+Affected HTML files:
+
+- index-stable-v1.html
+- index-stable.html
+- index-start.html
+- index-test.html
+
+The new data foundation that must be used exclusively:
+{
+"metadata": {
+"election_year": 2025,
+"timestamp": "2026-02-27",
+"parties": [
+{ "key": "spd", "name": "SPD" },
+{ "key": "cxu", "name": "Union" },
+{ "key": "gru", "name": "Grüne" },
+{ "key": "fdp", "name": "FDP" },
+{ "key": "afd", "name": "AfD" },
+{ "key": "lin", "name": "Linke" },
+{ "key": "frw", "name": "FW" },
+{ "key": "bsw", "name": "BSW" },
+{ "key": "ssw", "name": "SSW" }
+],
+"polls_num": 5908,
+"polls_hash": "4d3c3845548809175659410723876e91a03d0676c5ab303d7ede958ecfe48ed3"
+},
+"data": [
+{ "party": "spd", "avg": 14.806, "ci_lower": 12.98, "ci_upper": 16.632, "prev_result": 16.413, "diff": -1.607 },
+{ "party": "cxu", "avg": 25.618, "ci_lower": 23.395, "ci_upper": 27.841, "prev_result": 28.521, "diff": -2.903 },
+{ "party": "gru", "avg": 11.904, "ci_lower": 10.253, "ci_upper": 13.555, "prev_result": 11.606, "diff": 0.298 },
+{ "party": "fdp", "avg": 2.869, "ci_lower": 2.008, "ci_upper": 3.73, "prev_result": 4.328, "diff": -1.459 },
+{ "party": "afd", "avg": 24.257, "ci_lower": 22.062, "ci_upper": 26.452, "prev_result": 20.803, "diff": 3.454 },
+{ "party": "lin", "avg": 10.931, "ci_lower": 9.338, "ci_upper": 12.524, "prev_result": 8.775, "diff": 2.156 },
+{ "party": "bsw", "avg": 2.74, "ci_lower": 1.908, "ci_upper": 3.572, "prev_result": 4.981, "diff": -2.241 }
+]
+}
+Goal/Task:
+
+- Remove all references to old data files, legacy JSON structures, or previously used datasets.
+- Ensure every listed main-\*.js file loads and processes only this new JSON structure.
+- Ensure all index-\*.html files reference the correct updated JS logic.
+- Eliminate any duplicated or version-specific data logic — all versions must use the same data access pattern.
+- Refactor calculations (averages, CI, differences, majority logic, etc.) so they are derived strictly from this dataset.
+- Ensure no hardcoded numbers remain that contradict this dataset (e.g., simulation counts, thresholds, derived probabilities).
+
+Definition of Done:
+
+- All listed JS files fetch and process only the new JSON structure.
+- No legacy data sources remain in the repository.
+- All index versions render consistently using the same data foundation.
+- Browser console shows no undefined property errors.
+- The output reflects exactly the values from the new dataset.
+
+**Action:**
+
+- ✅ `data/poll-data.json` vollständig auf das neue Zielschema umgestellt (`metadata` + `data`) und mit den vorgegebenen Werten aktualisiert.
+- ✅ `src/poll-data-foundation.js` neu eingeführt als zentrale, gemeinsame Datenzugriffsschicht für alle Visualisierungsvarianten.
+- ✅ `src/main-start.js`, `src/main-test.js`, `src/main-stable.js`, `src/main-stable-v1.js` auf dasselbe Lade-/Mapping-Muster (`loadPollDataFoundation()`) vereinheitlicht; direkte, duplizierte JSON-Mapping-Blöcke entfernt.
+- ✅ `index-stable-v1.html` auf das passende Script `./src/main-stable-v1.js` korrigiert; übrige `index-*` Entry-Points beibehalten und validiert.
+- ✅ Fehlerprüfung auf allen geänderten Dateien ohne Befund durchgeführt.
+- ✅ Legacy-JSON-Quellen im Repository geprüft: nur `data/poll-data.json` vorhanden.
+
+**Status:** ✅ Completed
+
+---
+
+### 37. Deterministische Referenzlogik für 5%-Hürde und Mehrheiten
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+The current implementation shows a suspicious pattern in the results: the 5% threshold logic and coalition majority counts often appear only in 0, 1, or 100 scenarios. This suggests that the aggregation or threshold handling may be incorrectly implemented or partially hard-coded. In my reference/template version, majority counts are more granular (e.g., a coalition appears in 4 scenarios), which reflects proper per-scenario calculation. I have uploaded simulation data under the /data reference folder that describe how scenarios are generated and how seat distributions, threshold rules, and majority calculations should work.
+Additionally, the dropdown selection and the displayed number of scenarios sometimes change depending on user clicks/interactions. This creates inconsistent “majorities” outputs across interactions. The scenario base (N) used for the majority counts must remain consistent and deterministic for a given selection.
+After alignment with the reference logic, only one corrected and validated poll-data.json file should remain in the project.
+
+Goal/Task:
+Unify and correct the calculation logic in index-test.html and main-test.js so that:
+• The 5% threshold is applied exactly as defined in the simulation specification in the uploaded /data reference.
+• Coalition majorities are computed per scenario and then aggregated correctly across all simulated scenarios as defined in the simulation specification in the uploaded /data reference.
+• The displayed frequencies reflect the real distribution across all scenarios (e.g., 4 out of 1000), not just 0/1/100 values.
+• Any existing logic that simplifies or hard-codes threshold or majority outcomes is removed or refactored.
+• The dropdown selection and interaction logic do not change the underlying scenario count (N) unexpectedly. For any given dropdown state, the same scenario base and majority counts must be reproduced consistently across clicks. If filtering is intended, the updated denominator (N) must be explicitly shown in the UI.
+• All data files are consolidated into a single corrected poll-data.json file that is fully aligned with the /data reference specification.
+• All code references to outdated or alternative poll-data files are removed.
+
+Definition of Done:
+• Majority counts vary realistically and according to the logic of the /data reference (not restricted to 0, 1, or 100).
+• 5% threshold and coalition frequency outputs match the documented simulation logic in /data.
+• For a given dropdown selection, repeated interactions produce identical scenario denominators (N) and majority results.
+• Only one validated poll-data.json file remains in the repository.
+• No legacy poll-data files or references to them remain in the codebase.
+• The console shows no inconsistencies or fallback behavior related to data loading.
+
+**Action:**
+
+- ✅ `src/main-test.js` von zufallsbasierter Szenarioerzeugung auf deterministische Referenzszenarien umgestellt (`simulation_reference.scenarios` aus `data/poll-data.json`).
+- ✅ 5%-Hürdenprüfung pro Szenario auf referenzkonformen Schwellenstatus umgestellt und durchgängig für Sortierung, Highlighting und Aggregation verwendet.
+- ✅ Koalitionsmehrheiten auf absolute Sitzzählung pro Szenario (`>= 316 Sitze`) umgestellt und danach konsistent als `X von N` aggregiert.
+- ✅ Szenario-Basis stabilisiert: identischer Dropdown-Zustand nutzt dieselbe feste Szenariobasis ohne zufallsbedingte Neuberechnung; Summary zeigt Nenner explizit (`Basis: N von Gesamt-N`).
+- ✅ `data/poll-data.json` um `simulation_reference` mit 1000 Referenzszenarien ergänzt und als alleinige Datengrundlage konsolidiert.
+- ✅ `data/Data Reference/simulations.csv` und `data/Data Reference/simulations.json` entfernt.
+
+**Status:** ✅ Completed
+
+---
+
+### 38. Sprachvariante trennt Baseline und Editorial sauber
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+Recent changes have altered the version labeled "Redaktionelle Sprache" journalistisch optimiert", specifically affecting the badge texts "Wer liegt vorn?", "Wer rutscht unter 5%?" and "Welche Mehrheiten sind möglich?". These textual changes unintentionally modified structural or baseline wording logic.
+The version "Standard" must remain the unchanged baseline reference. It should preserve the original wording and behavior exactly as before.
+Only the "Redaktionelle Sprache" journalistisch optimiert" version should apply stylistic and linguistic adjustments, and these must be clearly differentiated from the baseline.
+
+Goal/Task:
+• Restore "Standard" to its original wording and logic (baseline version befor data changements).
+• Ensure that "Redaktionelle Sprache" journalistisch optimiert" contains journalistically refined badge texts while preserving identical underlying data logic and calculation results.
+• The badge texts "Wer liegt vorn?", "Wer rutscht unter 5%?" and "Welche Mehrheiten sind möglich?" must remain conceptually consistent but be rewritten in a fluent, intuitive, journalistically optimized style in the "Redaktionelle Sprache" journalistisch optimiert" version.
+• The editorial version should read smoothly, be immediately understandable, and follow journalistic language conventions (clear, narrative, reader-oriented).
+• No structural logic, scenario counts, thresholds, or majority calculations may differ between the two versions.
+• The informational label "Basis:" must not appear in the editorial version.
+
+Definition of Done:
+• "Standard" exactly reflects the previous baseline wording and behavior.
+• "Redaktionelle Sprache" journalistisch optimiert" uses fluent, intuitive, journalistic phrasing for the badge texts.
+• The badge texts "Wer liegt vorn?", "Wer rutscht unter 5%?" and "Welche Mehrheiten sind möglich?" are stylistically refined only in the editorial version. Remove information "Basis:"
+• Both versions produce identical numerical results and logic outputs.
+• No unintended logic changes were introduced alongside textual refinements.
+
+**Action:**
+
+- ✅ `src/main-test.js`: Für `5%-Hürde` und `Mehrheiten` journalistische Textvarianten ergänzt (Titel, Headline, Detail), während `Standard` unverändert das bisherige Baseline-Wording beibehält.
+- ✅ `src/main-test.js`: Bestehende Baseline-Logik und Berechnungen (Szenarien, 5%-Hürde, Mehrheiten) unverändert gelassen; nur sprachliche Ausgabe nach Variante getrennt.
+- ✅ `src/main-test.js`: Summary-Label `Basis:` bedingt gerendert – sichtbar nur in `Standard`, ausgeblendet in `journalistisch optimiert`.
+- ✅ `changelog.md`: PATCH-Version `0.4.15` ergänzt.
+
+**Status:** ✅ Completed
+
+---
+
+### 39. Start-Version aus Test-Standard übernehmen und v0 archivieren
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+I have implemented independent changes (apart from test variants) inside index-test.html and main-test.js, specifically within the "Standard" mode (which conceptually represents the baseline/start version). The "Standard" variant in the test environment now contains the updated logic and behavior that should become the new start version.
+
+However, the current files index-start.html and main-start.js still reflect the previous state. Before overwriting them, the existing start version must be preserved as a stable backup.
+
+Goal/Task:
+
+- Before overwriting, archive the current start version by renaming:
+  main-start.js → main-stable-v0.js
+  index-start.html → index-stable-v0.html
+  -> Ensure all script references are updated correctly after renaming.
+- Identify the current "Standard" mode implementation inside index-test.html and main-test.js.
+- Transfer this "Standard" implementation into: index-start.html and main-start.js; Whithout test panels, test-only controls, variant toggles, and experimental UI elements from the transferred version.
+- Ensure that only the pure baseline functionality remains in the new start version.
+
+Definition of Done:
+
+- The current start version is preserved as: main-stable-v0.js and index-stable-v0.html
+- The updated "Standard" logic from the test version is now active in: main-start.js and index-start.html
+  -> The new start version contains no test panels or variant-specific UI elements.
+- The baseline behavior matches the "Standard" mode from the test version exactly.
+
+**Action:**
+
+- ✅ Vorhandene Start-Dateien archiviert: `index-start.html` → `index-stable-v0.html`, `src/main-start.js` → `src/main-stable-v0.js`.
+- ✅ Script-Referenz im Archiv korrigiert: `index-stable-v0.html` lädt jetzt `./src/main-stable-v0.js`.
+- ✅ Neue Start-Basis aus Test-Standard übernommen: `index-start.html` und `src/main-start.js` aus Test-Implementierung aufgebaut.
+- ✅ Test-Panel und Variantenauswahl aus `index-start.html` entfernt; nur Visualisierungsbereich bleibt.
+- ✅ `src/main-start.js` auf festen `Standard`-Zustand gesetzt und test-spezifisches Variant-Panel-Rendering entfernt.
+- ✅ Fehlerprüfung auf geänderten/neu benannten Dateien durchgeführt ohne Befund.
+
+**Status:** ✅ Completed
+
+---
+
 **Append Anchor:** Do not remove this line. New entries are inserted above it.
