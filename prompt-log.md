@@ -2108,4 +2108,124 @@ Definition of Done:
 
 ---
 
+### 40. Style Transfer: Pre-Step Varianteninventar und Delta-Checkliste
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Follow instructions in [Style Transfer.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Style%20Transfer.prompt.md).
+
+**Action:**
+
+- 🔄 Pre-Step gestartet: Varianteninventar aus `index-test.html`/`src/main-test.js` sowie Abgleich mit `index-stable.html`/`src/main-stable.js` und Start-Baseline (`index-start.html`/`src/main-start.js`) durchgeführt.
+- 🔄 Alle Test-Panels 1:1 identifiziert (Standard jeweils als erste Option) und Stable-Verhalten je Panel auf Test-Option gemappt.
+- ⏸ Nächster Schritt: Chat-basierte Radio-Entscheidung der Nutzerin einholen; danach Mapping-Plan ohne Codeänderungen (Step 1).
+
+**Status:** ⏸ Pending (Warten auf Varianten-Auswahl)
+
+---
+
+### 41. Style Transfer: Ausgewählte Zielkonfiguration für Stable/Test-Default
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Layoutstruktur
+
+( ) Standard — Feste Rasterstruktur wie in Start.
+(•) Adaptives Raster — Spaltenzahl passt sich der Breite an.
+Steuerbereich-Struktur
+
+( ) Standard — Perspektive und Auswahl in linearer Folge.
+(•) Perspektive + Fokusblock — Fokusauswahl direkt zur Perspektive, Szenarien nachgeordnet.
+( ) Geteilte Steuerfläche — Navigation links, Auswahlblock rechts mit klarer Hierarchie.
+Häufigkeitsanordnung
+
+(•) Standard — Sortierung folgt der gewählten Perspektive.
+( ) Häufigkeit: Zentrum — Häufige Sitzbilder im Zentrum, seltene klar im Außenbereich.
+( ) Häufigkeit: Zonen — Häufige Sitzbilder zuerst, seltene klar am Randbereich.
+Gruppendarstellung
+
+( ) Standard — Ein durchgehendes Szenariofeld.
+(•) Segmentierte Bänder — Fokusgruppe und übrige Szenarien werden getrennt gezeigt.
+Mikrochart-Darstellung
+
+(•) Standard — Horizontale Balken wie in Start.
+( ) Kompakte Icons — Kreisförmige Icons, optimiert für dichte Layouts.
+( ) Nur Kreis-Marker — Ohne Kartenrahmen: nur kompakte Marker für dichte Kreislayouts.
+Typografie & Farbklima
+
+( ) Standard — Start-Basis für Schriftbild und Grundfarben.
+(•) Redaktionell Serif — Serifenbetont, ruhiger Lesefluss mit weicherem Hintergrund.
+( ) Redaktionell Sans — Klarer Sans-Stil mit präziser Gewichtung und höherem Kontrast.
+Hover-Verhalten
+
+( ) Standard — Bestehendes Tooltip-Verhalten wie in der bisherigen Testansicht.
+(•) Hover + Tooltip — Tooltip plus zusätzliche visuelle Hervorhebung.
+Redaktionelle Sprache
+
+( ) Standard — Technische Formulierungen wie in Start.
+(•) Journalistisch optimiert — Interpretative Sprache, journalistische Formulierungen.
+Erklärungstiefe
+
+( ) Standard — Minimale Erklärungen wie in Start.
+(•) Erweiterte Transparenz — Sortierlogik, Coalition Pool und Filter-Kontext erklärt.
+Schwellenwert-Visualisierung
+
+( ) Standard — Schwellenwerte nur im Text erwähnt.
+(•) Mit visuellen Markern — 5%-Hürde und 50%-Mehrheit visuell in Mikrocharts markiert.
+Wording in Szenario-Karten
+
+( ) Standard — Kurzform wie in Start (z. B. Pkt., Sitz-%).
+(•) Journalistische Klarsprache — Eindeutige Begriffe in allen Perspektiven (z. B. Prozentpunkte).
+
+**Action:**
+
+- ✅ Nutzerentscheidung für alle Panels vollständig übernommen.
+- 🔄 Step 1 (Mapping ohne Codeänderungen) vorbereitet: Test-Codepfade, UI-only-Logik, Transfer-/Entfernungsumfang und Hardcoding-Ziele werden jetzt finalisiert.
+- ✅ Implementierung (Step 2) durchgeführt.
+- ✅ `src/main-stable.js` auf die deterministische Start/Test-Basislogik umgestellt und auf die gewählte Zielkonfiguration fest vorkonfiguriert.
+- ✅ `src/main-test.js` Entry-Defaults auf dieselbe Zielkonfiguration gesetzt; Variantenalternativen unverändert beibehalten.
+- ✅ Fehlerprüfung auf geänderten Dateien ohne Befund.
+- ✅ `changelog.md` mit Version `0.4.16` aktualisiert.
+- ✅ Stable/Test-Separation geprüft: Variant-Panel nur in Test-Dateien vorhanden; keine Variant-UI in Stable.
+
+**Status:** ✅ Completed
+
+---
+
+### 42. Hover-Transfer in Stable und Stable-v1 korrigieren
+
+**Model:** GPT-5.3-Codex
+
+**Request:** You did not implement the correct hover from index-test.html/main-test.js to index-stable.html/main-stable.js and index-stable-v1.html and main-stable-v1.js
+
+**Action:**
+
+- ✅ Hover-Verhalten aus Test gegen Stable/Stable-v1 abgeglichen.
+- ✅ `index-stable.html` und `index-stable-v1.html` um die fehlenden `variant-hovered`-Styles ergänzt, damit `Hover + Tooltip` visuell korrekt wirkt.
+- ✅ `src/main-stable-v1.js` auf den Test-Mechanismus erweitert (`hoverBehavior: "hover-tooltip"` + Klassensteuerung bei Hover).
+- ✅ Fehlerprüfung auf allen geänderten Dateien ohne Befund.
+- ✅ `changelog.md` auf Version `0.4.18` aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 43. Commits 2.1.0 und 2.1.1 zusammenführen und pushen
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Please merge commits and pushs: Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung and Version 2.1.0 - Verständnis & Korrektheit, Style Transfer
+
+All changements should be displayed under Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung
+
+**Action:**
+
+- ✅ Die Commits `Version 2.1.0 - Verständnis & Korrektheit, Style Transfer` und `Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung` wurden zu einem Commit zusammengeführt.
+- ✅ Das Ergebnis liegt als einzelner Commit `Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung` auf `main`.
+- ✅ Force-Push mit `--force-with-lease` wurde erfolgreich durchgeführt.
+
+**Status:** ✅ Completed
+
+---
+
 **Append Anchor:** Do not remove this line. New entries are inserted above it.

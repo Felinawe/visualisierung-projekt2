@@ -370,6 +370,34 @@
         fill: var(--bg-highlight);
       }
 
+      .chart-card.hovered {
+        stroke: var(--card-hover-stroke);
+        stroke-width: 2;
+      }
+
+      circle.hovered {
+        stroke: var(--card-hover-stroke);
+        stroke-width: 2.5;
+      }
+
+      .card-group.variant-hovered {
+        filter: drop-shadow(0 3px 9px var(--shadow-highlight));
+      }
+
+      .card-group.variant-hovered .chart-card {
+        stroke: var(--text-strong);
+        stroke-width: 2.6;
+      }
+
+      .card-group.variant-hovered circle {
+        stroke: var(--text-strong);
+        stroke-width: 3;
+      }
+
+      .card-group.variant-hovered path {
+        opacity: 0.95;
+      }
+
       .card-group.highlighted {
         filter: drop-shadow(0 2px 6px var(--shadow-highlight));
       }
@@ -521,11 +549,7 @@
       <div id="visualization" aria-label="Visualisierungsbereich" role="region">
         <header class="header">
           <h1 class="title">Bundestagswahl-Simulator: mögliche Wahlausgänge</h1>
-          <p class="subtitle">
-            Jede Kachel zeigt ein mögliches Ergebnis. Alle Kacheln bleiben
-            gleich aufgebaut – die Perspektive ordnet nur neu, damit politische
-            Fragen schneller beantwortet werden können.
-          </p>
+          <p class="subtitle"></p>
         </header>
 
         <section

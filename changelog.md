@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.18] - 2026-02-27
+
+### Changed
+
+- `index-stable.html`, `index-stable-v1.html`: Hover-Highlight-Styles (`.card-group.variant-hovered` inkl. Karten/Kreis/Segment-Regeln) aus der Test-Variante ergänzt, damit `Hover + Tooltip` sichtbar und konsistent wirkt.
+- `src/main-stable-v1.js`: Hover-Logik auf den Test-Mechanismus erweitert (`hoverBehavior`-Default `hover-tooltip` + `variant-hovered` Klassensteuerung).
+
+## [0.4.17] - 2026-02-27
+
+### Changed
+
+- `src/main-stable.js`, `src/main-test.js`: In `Redaktionelle Sprache = Journalistisch optimiert` wird die Subheadline im Header nicht mehr angezeigt.
+- `index-stable.html`, `index-test.html`: Statischen Initialtext der Subheadline geleert, damit beim Einstieg kein Subheadline-Text vor dem ersten Rendern sichtbar ist.
+
+## [0.4.16] - 2026-02-27
+
+### Changed
+
+- `src/main-stable.js`: Stable auf die deterministische Start/Test-Basislogik umgestellt (inkl. Task-Struktur ohne `task2a`) und als fester Preset auf die ausgewählte Zielkonfiguration gesetzt (`adaptive-grid`, `perspective-bridge`, `segmented-bands`, `calm-serif`, `hover-tooltip`, `journalistic-optimized`, `extended-transparency`, `visual-markers`, `clarified`).
+- `src/main-test.js`: Test-Entry-Defaults auf dieselbe ausgewählte Zielkonfiguration gesetzt, während das vollständige Variantensystem unverändert erhalten bleibt.
+
 ## [0.4.15] - 2026-02-27
 
 ### Added

@@ -52,6 +52,7 @@ const state = {
     groupingDisplay: "segmented-bands",
     microchartDisplay: "standard",
     editorialStyle: "calm-serif",
+    hoverBehavior: "hover-tooltip",
   },
 };
 
@@ -1092,20 +1093,48 @@ function signedNoise(seed) {
 }
 
 function bindScenarioHover(cardGroups, view) {
-  const panel = ensureScenarioHoverPanel();
+  const hoverMode = state.variants.hoverBehavior ?? "standard";
+  const setHoverState = (node, isHovered) => {
+    d3.select(node).classed("variant-hovered", isHovered);
+  };
 
-  cardGroups
-    .on("mouseenter", function onEnter(event, cardData) {
-      updateScenarioHoverPanel(panel, cardData, view);
-      positionScenarioHoverPanel(panel, event);
-      panel.classed("visible", true);
-    })
-    .on("mousemove", function onMove(event) {
-      positionScenarioHoverPanel(panel, event);
-    })
-    .on("mouseleave", function onLeave() {
-      panel.classed("visible", false);
-    });
+  if (hoverMode === "standard") {
+    const panel = ensureScenarioHoverPanel();
+
+    cardGroups
+      .on("mouseenter", function onEnter(event, cardData) {
+        updateScenarioHoverPanel(panel, cardData, view);
+        positionScenarioHoverPanel(panel, event);
+        panel.classed("visible", true);
+      })
+      .on("mousemove", function onMove(event) {
+        positionScenarioHoverPanel(panel, event);
+      })
+      .on("mouseleave", function onLeave() {
+        panel.classed("visible", false);
+      });
+    return;
+  }
+
+  if (hoverMode === "hover-tooltip") {
+    const panel = ensureScenarioHoverPanel();
+
+    cardGroups
+      .on("mouseenter", function onEnter(event, cardData) {
+        setHoverState(this, true);
+        updateScenarioHoverPanel(panel, cardData, view);
+        positionScenarioHoverPanel(panel, event);
+        panel.classed("visible", true);
+      })
+      .on("mousemove", function onMove(event) {
+        positionScenarioHoverPanel(panel, event);
+      })
+      .on("mouseleave", function onLeave() {
+        setHoverState(this, false);
+        panel.classed("visible", false);
+      });
+    return;
+  }
 }
 
 function ensureScenarioHoverPanel() {

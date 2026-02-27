@@ -256,11 +256,11 @@ const state = {
     groupingDisplay: "segmented-bands",
     microchartDisplay: "standard",
     editorialStyle: "calm-serif",
-    hoverBehavior: "standard",
-    editorialLanguage: "standard",
-    explanationDepth: "standard",
-    thresholdVisualization: "standard",
-    numericalUnits: "standard",
+    hoverBehavior: "hover-tooltip",
+    editorialLanguage: "journalistic-optimized",
+    explanationDepth: "extended-transparency",
+    thresholdVisualization: "visual-markers",
+    numericalUnits: "clarified",
   },
 };
 
@@ -438,11 +438,13 @@ function renderHeader() {
     : "Bundestagswahl-Simulator: mögliche Wahlausgänge";
 
   const subtitle = isJournalistic
-    ? "Jede Kachel zeigt ein mögliches Wahlergebnis. Alle Szenarien sind gleich plausibel – die Sortierung ändert sich je nach Frage, die Daten bleiben identisch."
+    ? ""
     : "Jede Kachel zeigt ein mögliches Ergebnis. Alle Kacheln bleiben gleich aufgebaut – die Perspektive ordnet nur neu, damit politische Fragen schneller beantwortet werden können.";
 
   d3.select(".title").text(title);
-  d3.select(".subtitle").text(subtitle);
+  d3.select(".subtitle")
+    .text(subtitle)
+    .style("display", isJournalistic ? "none" : null);
 }
 
 function buildSeatSignature(scenario) {
