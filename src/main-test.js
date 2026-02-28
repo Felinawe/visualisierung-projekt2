@@ -281,7 +281,7 @@ const state = {
   frequencyOrderedScenarios: [],
   parties: [],
   variants: {
-    entryNarrative: "standard",
+    entryNarrative: "leadership-tension",
     layoutStructure: "adaptive-grid",
     controlAreaLayout: "perspective-bridge",
     probabilityLayout: "standard",
@@ -289,7 +289,7 @@ const state = {
     microchartDisplay: "standard",
     editorialStyle: "calm-serif",
     hoverBehavior: "hover-tooltip",
-    editorialLanguage: "journalistic-optimized",
+    editorialLanguage: "journalistic-flow",
     explanationDepth: "extended-transparency",
     thresholdVisualization: "visual-markers",
     numericalUnits: "clarified",

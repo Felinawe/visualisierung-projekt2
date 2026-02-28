@@ -2532,6 +2532,136 @@ Definition of Done:
 - ✅ `index-test.html`: Overline-Styling für die neue Eyebrow-Zeile ergänzt (`.eyebrow`).
 - ✅ `changelog.md`: Version `0.4.28` (PATCH) ergänzt.
 
+**Status:** ✅ Completed
+
+---
+
+### 51. Style Transfer: Varianteninventur und Stable-Delta-Checklist
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Follow instructions in [Style Transfer.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Style%20Transfer.prompt.md).
+
+**Action:**
+
+- 🔄 Pre-Step gestartet: Varianteninventur aus `index-test.html` + `src/main-test.js` sowie Stable-Abgleich mit `index-stable.html` + `src/main-stable.js` und Start-Basis aus `src/main-start.js`.
+- 🔄 1:1 Delta-Checklist nach Test-Panelstruktur erstellt (inkl. „Standard“-Referenz auf Start) und zur expliziten User-Auswahl vorbereitet.
+- ⏸ Noch keine Codeänderungen an Stable/Test-Logik durchgeführt; Mapping- und Implementierungsschritte warten auf bestätigte Auswahl.
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 52. Style Transfer: User-Auswahl der Zielkonfiguration
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Einstieg & Erzählrichtung
+( ) Standard — Unveränderte Baseline aus Start
+( ) A – Mehrheits-Start — Einstieg bei Mehrheiten, Fokus auf knappe Regierungsfähigkeit
+( ) B – Risiko-Start — Einstieg bei 5%-Hürde, Fokus auf Kippmomente
+(•) C – Führungs-Spannung — Einstieg bei Führung, knappe Führungen zuerst
+Layoutstruktur
+( ) Standard — Feste Rasterstruktur wie in Start
+(•) Adaptives Raster — Spaltenzahl passt sich der Breite an
+Steuerbereich-Struktur
+( ) Standard — Perspektive und Auswahl in linearer Folge
+(•) Perspektive + Fokusblock — Fokusauswahl direkt zur Perspektive, Szenarien nachgeordnet
+( ) Geteilte Steuerfläche — Navigation links, Auswahlblock rechts mit klarer Hierarchie
+Häufigkeitsanordnung
+(•) Standard — Sortierung folgt der gewählten Perspektive
+( ) Häufigkeit: Zentrum — Häufige Sitzbilder im Zentrum, seltene im Außenbereich
+( ) Häufigkeit: Zonen — Häufige Sitzbilder zuerst, seltene am Randbereich
+Gruppendarstellung
+( ) Standard — Ein durchgehendes Szenariofeld
+(•) Segmentierte Bänder — Fokusgruppe und übrige Szenarien getrennt
+Mikrochart-Darstellung
+(•) Standard — Horizontale Balken wie in Start
+( ) Kompakte Icons — Kreisförmige Icons für dichte Layouts
+( ) Nur Kreis-Marker — Ohne Kartenrahmen, nur kompakte Marker
+Typografie & Farbklima
+( ) Standard — Start-Basis für Schriftbild und Grundfarben
+(•) Redaktionell Serif — Serifenbetont, ruhiger Lesefluss
+( ) Redaktionell Sans — Klarer Sans-Stil mit höherem Kontrast
+Hover-Verhalten
+( ) Standard — Bestehendes Hover-Verhalten wie in Start
+(•) Hover + Tooltip — Tooltip plus zusätzliche visuelle Hervorhebung
+Redaktionelle Sprache
+( ) Standard — Technische Formulierungen wie in Start
+( ) Journalistisch optimiert — Interpretative Sprache
+(•) Journalistisch optimiert – klarerer narrativer Flow — gestufte Text-Hierarchie
+Erklärungstiefe
+( ) Standard — Minimale Erklärungen wie in Start
+(•) Erweiterte Transparenz — Sortierlogik/Filterkontext zusätzlich erklärt
+Schwellenwert-Visualisierung
+( ) Standard — Schwellenwerte nur im Text
+(•) Mit visuellen Markern — 5%-Hürde und 50%-Mehrheit visuell markiert
+Wording in Szenario-Karten
+( ) Standard — Kurzform wie in Start
+(•) Journalistische Klarsprache — eindeutige
+
+**Action:**
+
+- ✅ Ausgewählte Zielkonfiguration aus dem Radio-Checklist-Reply übernommen.
+- 🔄 Step 1 (Mapping ohne Codeänderung) gestartet: Zuordnung der Test-Codepfade, Trennung UI-only vs. übertragbare Logik, Vorbereitung eines konkreten Replacement-Plans.
+
+**Status:** 🔄 In Progress
+
+---
+
+### 53. Style Transfer: Step 2 Implementierung nach Freigabe
+
+**Model:** GPT-5.3-Codex
+
+**Request:** yes
+
+**Action:**
+
+- ✅ `src/main-stable.js`: Ausgewählte Konfiguration fest in Stable umgesetzt (C – Führungs-Spannung + Journalistisch optimiert – klarerer narrativer Flow), inklusive übernommener Flow-Header/-Badge-Texte, alternative-only Interaktion und inline Fokuskomplex aus der Testlogik.
+- ✅ `index-stable.html`: Nur die für den festen Flow-Betrieb nötigen UI-Elemente/Styles ergänzt (`.eyebrow`, `.summary-badge`, `#task-nav-inline`, zugehörige Button-Container-Styles), weiterhin ohne Variant-Panel.
+- ✅ `src/main-test.js`: Einstiegsvorauswahl auf dieselbe Konfiguration gesetzt, Variantensystem vollständig erhalten.
+- ✅ `changelog.md`: Version `0.4.30` (PATCH) ergänzt.
+- ✅ Fehlerprüfung auf geänderten Dateien durchgeführt (`No errors found`).
+- ✅ Stable/Test-Separation überprüft: Variant Controls nur in Test-Dateien, keine Variantenauswahl in Stable.
+- ✅ Top-Panel-Separation überprüft: Test-Variantensystem bleibt als separates Oberpanel in Test; Stable enthält kein Test-Panel.
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 54. Versionierung: Stable-Backup als neue vX-Version
+
+**Model:** GPT-5.3-Codex
+
+**Request:** <attachment id="prompt:Versionierung.prompt.md" filePath="/Users/felina/Documents/Master HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Versionierung.prompt.md">
+Prompt instructions file:
+
+-
+
+Create a versioned backup of the current index-stable.html and main-stable.js files.
+
+Procedure:
+
+- Save the current index-stable.html as index-stable-vX.html.
+- Save the current main-stable.js as main-stable-vX.js.
+- Automatically increment X sequentially (v1, v2, v3, …).
+- Never overwrite existing versioned files.
+- The most recent stable version must always remain available under index-stable.html and main-stable.js.
+
+Goal:
+Each manually triggered archive should be stored as its own incrementally numbered stable version so that it can later be deployed separately via GitHub Pages. Before saving, check the highest existing version number and increment it accordingly.
+
+</attachment>
+Follow instructions in [Versionierung.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Versionierung.prompt.md).
+
+**Action:**
+
+- ✅ Höchste vorhandene Stable-Version ermittelt (`v2`), nächstes Inkrement `v3` festgelegt.
+- ✅ `index-stable.html` nach `index-stable-v3.html` und `src/main-stable.js` nach `src/main-stable-v3.js` kopiert, ohne bestehende Versionen zu überschreiben.
+- ✅ `index-stable-v3.html` auf `./src/main-stable-v3.js` umgestellt, damit das Archiv eigenständig deploybar bleibt.
+- ✅ `changelog.md` auf `0.4.31` (PATCH) aktualisiert.
+- ✅ Pflichtprüfungen vorbereitet: Fehlerprüfung der geänderten Dateien sowie Stable/Test-Separation-Checks.
+
 **Status:** ⏸ Pending Approval (accept/reject)
 
 ---

@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.31] - 2026-02-28
+
+### Added
+
+- `index-stable-v3.html` als neue archivierte Stable-Version aus dem aktuellen Stand von `index-stable.html` erstellt.
+- `src/main-stable-v3.js` als zugehörige archivierte Logikdatei aus dem aktuellen Stand von `src/main-stable.js` erstellt.
+
+### Changed
+
+- `index-stable-v3.html`: Script-Referenz auf `./src/main-stable-v3.js` umgestellt, damit die Version `v3` eigenständig und separat deploybar bleibt.
+
+## [0.4.30] - 2026-02-28
+
+### Changed
+
+- `src/main-stable.js`: Stable auf die ausgewählte Konfiguration festgesetzt (`entryNarrative: leadership-tension`, `editorialLanguage: journalistic-flow`) und die zugehörigen Test-Logikpfade für Header, Task-Navigation, Summary-Badge, alternative Fokussteuerung und C-spezifische Führungsreihenfolge ohne Variant-UI übernommen.
+- `index-stable.html`: Für den festen Flow-Modus nur die benötigte Darstellungsstruktur ergänzt (Eyebrow, Summary-Badge, Inline-Task-Container `#task-nav-inline`, zugehörige Styles), ohne Test-Panel oder Variantenauswahl.
+- `src/main-test.js`: Entry-Defaults auf dieselbe Zielkonfiguration vorselektiert (`leadership-tension` + `journalistic-flow`), bei vollständig erhaltenem Variantensystem.
+
+## [0.4.29] - 2026-02-28
+
+### Added
+
+- `index-stable-v2.html` und `src/main-stable-v2.js` als neue archivierte Stable-Version (`v2`) aus dem aktuellen Stand von `index-stable.html` und `src/main-stable.js` angelegt (ohne Überschreiben bestehender Versionen).
+
 ## [0.4.28] - 2026-02-28
 
 ### Changed
