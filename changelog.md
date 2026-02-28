@@ -5,6 +5,108 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.28] - 2026-02-28
+
+### Changed
+
+- `src/main-test.js`: In `journalistic-flow` wird `Wenn am Sonntag Bundestagswahl wäre` als eigener Eyebrow-Text (Overline-Ebene) im Header geführt, ohne die narrative Subheadline zu ersetzen.
+- `src/main-test.js`: Die vorherigen narrativen Subheadlines in allen drei Flow-Perspektiven (`Führung`, `5%-Hürde`, `Mehrheiten`) wiederhergestellt.
+- `src/main-test.js`: Summary-Überschriften der Flow-Variante (`Führungsbild in den Szenarien`, `5%-Hürde im Szenarienvergleich`, `Mehrheitscheck im Szenarienvergleich`) entfernt.
+- `src/main-test.js`, `index-test.html`: Header-Rendering und Styling für die neue Eyebrow-Zeile ergänzt (Overline-Style).
+
+## [0.4.27] - 2026-02-28
+
+### Changed
+
+- `src/main-test.js`: In `Redaktionelle Sprache` → `Journalistisch optimiert - klarerer narrativer Flow...` Badge-Präfix `Kernaussage:` in allen drei Perspektiven entfernt; Kernbotschaften bleiben im gleichen Badge-Layout erhalten.
+- `src/main-test.js`: Flow-Header für `Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?` auf die vorgegebenen Titel und die Subheadline `Wenn am Sonntag Bundestagswahl wäre` umgestellt.
+- `src/main-test.js`: Redundante Flow-Introzeilen unterhalb der Badges entfernt und die beiden als unzutreffend markierten Flow-Detailaussagen in `5%-Hürde` und `Mehrheiten` entfernt.
+- `src/main-test.js`: Fokus-Komplex-Label in `5%-Hürde` (Flow) auf `Welche Partei könnte ebenfalls den Einzug in den Bundestag verpassen?` geändert.
+
+## [0.4.26] - 2026-02-28
+
+### Changed
+
+- `prompt-log.md`: Neuer Eintrag `48` ergänzt und die drei Bilder `assets/image-1.jpeg`, `assets/image-2.jpeg` und `assets/image-3.jpeg` direkt unterhalb von Entry 47 sowie oberhalb des Append Anchors eingebunden.
+
+## [0.4.25] - 2026-02-28
+
+### Changed
+
+- `src/main-test.js`: Arbeitsstand auf die erste lokale Version der Flow-Variante zurückgesetzt, inklusive Badge-Texte mit Präfix `Kernaussage:` in allen drei Perspektiven.
+- `index-test.html`: Arbeitsstand auf die zugehörige Badge-Layout-Version zurückgesetzt (`#summary .summary-badge`).
+- `prompt-log.md`: Arbeitsstand auf die frühere lokale Eintragsfassung zurückgesetzt.
+
+## [0.4.24] - 2026-02-27
+
+### Changed
+
+- `src/main-test.js`: Neue Option im Panel `Redaktionelle Sprache` ergänzt: `Journalistisch optimiert – klarerer narrativer Flow`.
+- `src/main-test.js`: Für die neue Sprachvariante in allen drei Perspektiven (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?`) einen eigenen newsroom-nahen Textpfad umgesetzt (Titelstruktur `Bundestagswahl 2025: ...`, optionale Subheadline, Badge, Intro-Absatz, Headline, Detailtext).
+- `src/main-test.js`: Dropdown-/Fokus-Texte und Alternative-Buttons in der neuen Sprachvariante sprachlich auf klaren narrativen Lead ausgerichtet, ohne Änderungen an Berechnungen, Sortierung oder Schwellenlogik.
+- `index-test.html`: Badge-Styling für den Summary-Bereich ergänzt, genutzt nur durch die neue Sprachvariante.
+
+## [0.4.23] - 2026-02-27
+
+### Removed
+
+- Konfliktkopien im Projekt-Root entfernt, damit nur die Originaldateien verwendet werden:
+  - `prompt-log (conflicted copy 2026-02-27 180731).md`
+  - `index-test (conflicted copy 2026-02-27 180227).html`
+  - `changelog (conflicted copy 2026-02-27 180227).md`
+  - `src/main-test (conflicted copy 2026-02-27 180731).js`
+
+## [0.4.22] - 2026-02-27
+
+### Changed
+
+- `src/main-test.js`: In den Entry-Varianten A/B/C wird der Fokus-Komplex nicht mehr im oberen Steuerbereich gerendert, sondern direkt unter dem Badge-Text im Summary-Bereich und damit oberhalb der Szenario-Karten.
+- `src/main-test.js`: Reihenfolge für A/B/C im Bereich über den Karten vereinheitlicht: zuerst Fokus-Komplex (nur bei vorhandenen Alternativen), danach Perspektiv-Buttons (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?` ohne aktive Option).
+- `src/main-test.js`: Top-`sub-controls` in A/B/C enthalten für Kontextwechsel keine doppelten Fokus-Elemente mehr.
+
+## [0.4.22] - 2026-02-27
+
+### Changed
+
+- `index-test.html`: Zusätzlicher Container `#task-nav-inline` zwischen Summary und Szenariolandschaft ergänzt, um Einstiegs-Buttons in Varianten A/B/C unterhalb des Badge-Bereichs zu zeigen.
+- `src/main-test.js`: Task-Buttons werden in A/B/C (`Einstieg & Erzählrichtung` ≠ `Standard`) in den Inline-Container gerendert; in `Standard` weiterhin im oberen Steuerbereich.
+- `src/main-test.js`: Aktive/inaktive Task-Container werden dynamisch ein- bzw. ausgeblendet, sodass die Buttons nur an der jeweils gewünschten Position erscheinen.
+
+## [0.4.21] - 2026-02-27
+
+### Changed
+
+- `src/main-test.js`: Kontext-Komplex in Alternative-Only-Modi wird nun vollständig ausgeblendet, wenn keine alternative Partei/Koalition auswählbar ist.
+- `src/main-test.js`: Aktive Partei/Koalition wird im Kontext-Komplex nicht mehr als schwarzer aktiver Eintrag angezeigt; sichtbar bleiben nur alternative Umschalt-Buttons.
+- `src/main-test.js`: Kontext-Labeltexte im Alternative-Only-Modus angepasst auf:
+  - `Eine weitere Partei liegt dicht auf den Fersen`
+  - `Eine weitere Partei droht an der 5%-Hürde zu scheitern`
+  - `Eine weitere Koalition könnte entstehen`
+
+## [0.4.20] - 2026-02-27
+
+### Changed
+
+- `src/main-test.js`: Interaktionslogik für `Einstieg & Erzählrichtung` (außer `Standard`) auf dynamisches Alternative-Only-Verhalten umgestellt: aktiver Einstieg wird nicht mehr als aktiver Button gezeigt, stattdessen nur alternative Einstiegsoptionen.
+- `src/main-test.js`: Kontextsteuerung (`Führung`, `5%-Hürde`, `Mehrheiten`) in Nicht-Standard-Entry-Varianten von Select-Dropdown auf aktive Anzeige + alternative Umschalt-Buttons umgestellt; aktive Auswahl ist nicht mehr auswählbar.
+- `src/main-test.js`: Render-Synchronisierung der Task-Buttons mit dem aktuellen State vereinheitlicht, sodass Task-Wechsel und Sichtbarkeit konsistent mit dem aktiven Einstieg bleiben.
+- `index-test.html`: Styles für aktive Kontextanzeige und alternative Umschalt-Buttons ergänzt.
+
+## [0.4.19] - 2026-02-27
+
+### Added
+
+- `src/main-test.js`: Neues Test-Panel `Einstieg & Erzählrichtung` mit vier Radio-Optionen (`Standard`, `A – Mehrheits-Start`, `B – Risiko-Start`, `C – Führungs-Spannung`) zur vergleichenden Prüfung unterschiedlicher Einstiegslogiken.
+
+### Changed
+
+- `src/main-test.js`: Narrative Variante steuert nun den Default-Einstieg je Richtung (A → `Mehrheiten`, B → `5%-Hürde`, C → `Führung`) ausschließlich in der Testumgebung.
+- `src/main-test.js`: Task-spezifische Emphase-Logik erweitert:
+  - C priorisiert in `Führung` knappe Führungen vor klaren Führungen.
+  - B priorisiert in `5%-Hürde` knappe Fälle rund um die Schwelle innerhalb der Gruppen.
+  - A priorisiert in `Mehrheiten` knappe Mehrheiten und knappe Fehlmehrheiten innerhalb der Gruppen.
+- `src/main-test.js`: Summary-Detailtexte je Richtung sprachlich auf die jeweilige politische Einstiegsfrage geschärft.
+
 ## [0.4.18] - 2026-02-27
 
 ### Changed

@@ -40,6 +40,32 @@ const LEAD_MARGIN_CLEAR_MIN = 1.0;
 
 const VARIANT_GROUPS = [
   {
+    id: "entryNarrative",
+    title: "Einstieg & Erzählrichtung",
+    options: [
+      {
+        value: "standard",
+        label: "Standard",
+        hint: "Unveränderte Baseline aus Start.",
+      },
+      {
+        value: "majority-start",
+        label: "A – Mehrheits-Start",
+        hint: "Einstieg bei Mehrheiten, Fokus auf knappe Regierungsfähigkeit.",
+      },
+      {
+        value: "risk-start",
+        label: "B – Risiko-Start",
+        hint: "Einstieg bei 5%-Hürde, Fokus auf Kippmomente.",
+      },
+      {
+        value: "leadership-tension",
+        label: "C – Führungs-Spannung",
+        hint: "Einstieg bei Führung, knappe Führungen zuerst.",
+      },
+    ],
+  },
+  {
     id: "layoutStructure",
     title: "Layoutstruktur",
     options: [
@@ -185,6 +211,11 @@ const VARIANT_GROUPS = [
         label: "Journalistisch optimiert",
         hint: "Interpretative Sprache, journalistische Formulierungen.",
       },
+      {
+        value: "journalistic-flow",
+        label: "Journalistisch optimiert – klarerer narrativer Flow",
+        hint: "Lead mit Kernaussage, abgestufte Text-Hierarchie ohne Redundanzen.",
+      },
     ],
   },
   {
@@ -250,6 +281,7 @@ const state = {
   frequencyOrderedScenarios: [],
   parties: [],
   variants: {
+    entryNarrative: "standard",
     layoutStructure: "adaptive-grid",
     controlAreaLayout: "perspective-bridge",
     probabilityLayout: "standard",
@@ -350,6 +382,61 @@ function regenerateScenarios() {
   ) {
     state.selectedCoalition = strongestCoalition(state.coalitionOptions);
   }
+
+  applyEntryNarrativeDefaultsIfNeeded(false);
+}
+
+function applyEntryNarrativeDefaultsIfNeeded(forceTaskSwitch = false) {
+  const narrative = state.variants.entryNarrative ?? "standard";
+
+  if (narrative === "majority-start") {
+    if (forceTaskSwitch) {
+      state.task = "task3";
+    }
+    if (
+      !state.selectedCoalition ||
+      !state.coalitionOptions.some(
+        (entry) => entry.id === state.selectedCoalition,
+      )
+    ) {
+      state.selectedCoalition = strongestCoalition(state.coalitionOptions);
+    }
+    return;
+  }
+
+  if (narrative === "risk-start") {
+    if (forceTaskSwitch) {
+      state.task = "task2b";
+    }
+    state.selectedThresholdParty = mostThresholdRiskParty(state.scenarios);
+    return;
+  }
+
+  if (narrative === "leadership-tension") {
+    if (forceTaskSwitch) {
+      state.task = "task1";
+    }
+    state.selectedLeader = dominantLeader(state.scenarios);
+  }
+}
+
+function isAlternativeOnlyInteractionMode() {
+  return (state.variants.entryNarrative ?? "standard") !== "standard";
+}
+
+function editorialLanguageVariant() {
+  return state.variants.editorialLanguage ?? "standard";
+}
+
+function isJournalisticLanguage() {
+  const variant = editorialLanguageVariant();
+  return (
+    variant === "journalistic-optimized" || variant === "journalistic-flow"
+  );
+}
+
+function isNarrativeFlowLanguage() {
+  return editorialLanguageVariant() === "journalistic-flow";
 }
 
 function renderVariantPanel() {
@@ -386,6 +473,9 @@ function renderVariantPanel() {
         .property("checked", state.variants[group.id] === option.value)
         .on("change", () => {
           state.variants[group.id] = option.value;
+          if (group.id === "entryNarrative") {
+            applyEntryNarrativeDefaultsIfNeeded(true);
+          }
           renderVariantPanel();
           if (group.id === "editorialLanguage") {
             renderHeader();
@@ -430,21 +520,41 @@ function rebuildFrequencyRanking() {
 }
 
 function renderHeader() {
-  const isJournalistic =
-    state.variants.editorialLanguage === "journalistic-optimized";
+  const isJournalistic = isJournalisticLanguage();
+  const isNarrativeFlow = isNarrativeFlowLanguage();
+  const view = deriveView();
+  const eyebrow = isNarrativeFlow
+    ? (view.headerEyebrow ?? "Wenn am Sonntag Bundestagswahl wäre")
+    : "";
 
-  const title = isJournalistic
-    ? "Bundestagswahl 2025: Bandbreite möglicher Ergebnisse"
-    : "Bundestagswahl-Simulator: mögliche Wahlausgänge";
+  const title = isNarrativeFlow
+    ? (view.headerTitle ??
+      "Bundestagswahl 2025: Die politische Lage im Szenarienvergleich")
+    : isJournalistic
+      ? "Bundestagswahl 2025: Bandbreite möglicher Ergebnisse"
+      : "Bundestagswahl-Simulator: mögliche Wahlausgänge";
 
-  const subtitle = isJournalistic
-    ? ""
-    : "Jede Kachel zeigt ein mögliches Ergebnis. Alle Kacheln bleiben gleich aufgebaut – die Perspektive ordnet nur neu, damit politische Fragen schneller beantwortet werden können.";
+  const subtitle = isNarrativeFlow
+    ? (view.headerSubtitle ?? "")
+    : isJournalistic
+      ? ""
+      : "Jede Kachel zeigt ein mögliches Ergebnis. Alle Kacheln bleiben gleich aufgebaut – die Perspektive ordnet nur neu, damit politische Fragen schneller beantwortet werden können.";
+
+  const header = d3.select(".header");
+  header
+    .selectAll("p.eyebrow")
+    .data(eyebrow ? [eyebrow] : [])
+    .join(
+      (enter) => enter.insert("p", ".title").attr("class", "eyebrow"),
+      (update) => update,
+      (exit) => exit.remove(),
+    )
+    .text((d) => d);
 
   d3.select(".title").text(title);
   d3.select(".subtitle")
     .text(subtitle)
-    .style("display", isJournalistic ? "none" : null);
+    .style("display", subtitle ? null : "none");
 }
 
 function buildSeatSignature(scenario) {
@@ -582,6 +692,34 @@ function thresholdRelevantParties(scenarios) {
   );
 }
 
+function mostThresholdRiskParty(scenarios) {
+  const options = thresholdRelevantParties(scenarios);
+  if (options.length === 0) {
+    return partyAtHurdle(state.parties);
+  }
+
+  const ranked = options
+    .map((party) => ({
+      party,
+      belowCount: scenarios.filter((scenario) =>
+        isBelowThreshold(scenario, party),
+      ).length,
+      avgDistance:
+        scenarios.reduce(
+          (acc, scenario) => acc + Math.abs(shareOf(scenario, party) - 5),
+          0,
+        ) / Math.max(1, scenarios.length),
+    }))
+    .sort((a, b) => {
+      if (b.belowCount !== a.belowCount) {
+        return b.belowCount - a.belowCount;
+      }
+      return a.avgDistance - b.avgDistance;
+    });
+
+  return ranked[0]?.party ?? options[0];
+}
+
 function combinations(values, size) {
   const result = [];
 
@@ -625,9 +763,10 @@ function isBelowThreshold(scenario, party) {
 }
 
 function renderTaskButtons() {
-  const nav = d3.select("#task-nav");
-  const isJournalistic =
-    state.variants.editorialLanguage === "journalistic-optimized";
+  const navTop = d3.select("#task-nav");
+  const navInline = d3.select("#task-nav-inline");
+  const isJournalistic = isJournalisticLanguage();
+  const alternativeOnly = isAlternativeOnlyInteractionMode();
 
   const taskLabels = isJournalistic
     ? [
@@ -637,20 +776,33 @@ function renderTaskButtons() {
       ]
     : TASKS;
 
+  const visibleTaskLabels = alternativeOnly
+    ? taskLabels.filter((task) => task.id !== state.task)
+    : taskLabels;
+
+  const nav = alternativeOnly ? navInline : navTop;
+  const inactiveNav = alternativeOnly ? navTop : navInline;
+
+  inactiveNav.selectAll("button").data([]).join("button");
+
+  inactiveNav.style("display", "none");
+  nav.style("display", null);
+
   nav
     .selectAll("button")
-    .data(taskLabels)
+    .data(visibleTaskLabels, (d) => d.id)
     .join("button")
     .attr("class", (d) => `task-btn ${d.id === state.task ? "active" : ""}`)
     .text((d) => d.label)
     .on("click", (_, task) => {
       state.task = task.id;
-      renderTaskButtons();
       render();
     });
 }
 
 function render() {
+  renderHeader();
+  renderTaskButtons();
   applyEditorialStyleVariant();
   const view = deriveView();
   applyControlAreaLayout(view);
@@ -718,17 +870,33 @@ function task1View() {
     .filter((scenario) => scenario.firstParty !== selected)
     .sort((a, b) => b.leadMargin - a.leadMargin);
 
-  const ordered = [...clearLead, ...closeRace, ...others];
+  const narrative = state.variants.entryNarrative ?? "standard";
+  const ordered =
+    narrative === "leadership-tension"
+      ? [...closeRace, ...clearLead, ...others]
+      : [...clearLead, ...closeRace, ...others];
   const groupedOrder = new Map(
     ordered.map((scenario, index) => [scenario.id, index]),
   );
 
   const selectedCount = leaders.get(selected) ?? 0;
-  const isJournalistic =
-    state.variants.editorialLanguage === "journalistic-optimized";
+  const languageVariant = editorialLanguageVariant();
+  const isJournalistic = languageVariant === "journalistic-optimized";
+  const isNarrativeFlow = languageVariant === "journalistic-flow";
 
   const isExtended =
     state.variants.explanationDepth === "extended-transparency";
+
+  const secondPartyCounts = d3.rollup(
+    selectedLeads,
+    (arr) => arr.length,
+    (scenario) => scenario.secondParty,
+  );
+  const topSecondParty =
+    [...secondPartyCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ??
+    state.scenarios.find((scenario) => scenario.firstParty === selected)
+      ?.secondParty ??
+    selected;
 
   const title = isJournalistic
     ? "Wo liegt die gewählte Partei vorn?"
@@ -741,11 +909,65 @@ function task1View() {
     ? `Davon zeigen ${clearLead.length} Szenarien eine klare Führung und ${closeRace.length} ein knappes Rennen.`
     : `Klare Führung: ${clearLead.length} von ${state.scenarioCount} Szenarien. Knappes Rennen: ${closeRace.length} von ${state.scenarioCount} Szenarien.`;
 
+  if (isJournalistic && narrative === "leadership-tension") {
+    detail = `${closeRace.length} Szenarien zeigen ein enges Führungsduell. Diese knappen Führungen stehen zuerst, danach die klareren Vorsprünge.`;
+  }
+
   if (isExtended) {
     const notLeading = state.scenarioCount - selectedCount;
     detail = isJournalistic
       ? `${clearLead.length} Szenarien zeigen eine klare Führung, ${closeRace.length} ein knappes Rennen und ${notLeading} liegen bei anderen führenden Parteien. Die Karten bleiben innerhalb der Gruppen nachvollziehbar geordnet.`
       : `Klare Führung: ${clearLead.length} von ${state.scenarioCount}, Knappes Rennen: ${closeRace.length} von ${state.scenarioCount}. Sonstige: ${notLeading} von ${state.scenarioCount}. Innerhalb der Gruppen bleibt die Sortierung politisch nachvollziehbar.`;
+  }
+
+  if (isNarrativeFlow) {
+    const notLeading = state.scenarioCount - selectedCount;
+    const flowHeadline = `${partyName(selected)} führt in ${selectedCount} von ${state.scenarioCount} Szenarien.`;
+    const flowDetail = `${closeRace.length} Szenarien bleiben ein enges Duell. In ${notLeading} Szenarien liegt eine andere Partei vorn.`;
+
+    return {
+      title: "",
+      badge: "Die Führung bleibt umkämpft",
+      headline: flowHeadline,
+      detail: flowDetail,
+      headerTitle: "Union liegt vorn, AfD dicht auf den Fersen",
+      headerEyebrow: "Wenn am Sonntag Bundestagswahl wäre",
+      headerSubtitle:
+        "Viele Szenarien bleiben knapp – schon kleine Verschiebungen können die Reihenfolge an der Spitze ändern.",
+      ordered,
+      highlight: (d) => d.firstParty === selected,
+      cardText: (d) => {
+        if (isClarifiedNumericUnits()) {
+          return `${partyName(d.firstParty)}: Vorsprung +${d.leadMargin.toFixed(1)} Prozentpunkte`;
+        }
+        return `${partyName(d.firstParty)} +${d.leadMargin.toFixed(1)} Pkt.`;
+      },
+      dataMetric: "vote",
+      segmentOrder: (scenario) =>
+        [...scenario.votes]
+          .sort((a, b) => b.voteShare - a.voteShare)
+          .map((entry) => entry.party),
+      controls: {
+        type: "leader",
+        options: [...leaders.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .map(([party]) => party),
+        selected,
+      },
+      controlLabel: "Wessen Vorsprung soll im Fokus stehen?",
+      customBandTitle: (scenario) => {
+        if (scenario.firstParty !== selected) {
+          return "Sonstige";
+        }
+        if (scenario.leadMargin > LEAD_MARGIN_CLEAR_MIN) {
+          return "Klare Führung";
+        }
+        return "Knappes Rennen";
+      },
+      customBandSort: (a, b) =>
+        (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+        (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+    };
   }
 
   return {
@@ -789,13 +1011,23 @@ function task1View() {
 
 function task2bView() {
   const selected = state.selectedThresholdParty;
-  const isJournalistic =
-    state.variants.editorialLanguage === "journalistic-optimized";
+  const languageVariant = editorialLanguageVariant();
+  const isJournalistic = languageVariant === "journalistic-optimized";
+  const isNarrativeFlow = languageVariant === "journalistic-flow";
+  const narrative = state.variants.entryNarrative ?? "standard";
   const ordered = [...state.scenarios].sort((a, b) => {
     const aShare = shareOf(a, selected);
     const bShare = shareOf(b, selected);
     const aBelow = isBelowThreshold(a, selected);
     const bBelow = isBelowThreshold(b, selected);
+
+    if (narrative === "risk-start") {
+      if (aBelow !== bBelow) {
+        return aBelow ? -1 : 1;
+      }
+      return Math.abs(aShare - 5) - Math.abs(bShare - 5);
+    }
+
     if (aBelow !== bBelow) {
       return aBelow ? -1 : 1;
     }
@@ -815,6 +1047,10 @@ function task2bView() {
 
   let detail = `${aboveCount} Szenarien liegen darüber. Die Sortierung zeigt zuerst die klaren Unterschreitungen, danach die knappen Fälle über 5%.`;
 
+  if (narrative === "risk-start") {
+    detail = `${aboveCount} Szenarien liegen darüber. Im Fokus stehen zuerst die knappsten Fälle rund um die 5%-Hürde.`;
+  }
+
   if (isExtended) {
     detail = `${aboveCount} Szenarien liegen darüber. Vorne: Szenarien unter 5%, sortiert nach Abstand zur Hürde. Hinten: Szenarien über 5%, ebenfalls nach Abstand.`;
   }
@@ -831,10 +1067,54 @@ function task2bView() {
     ? `${aboveCount} Szenarien liegen darüber. Oben stehen die klaren Unterschreitungen, darunter die knappen Fälle über der Hürde.`
     : `${aboveCount} Szenarien liegen darüber. Die Reihenfolge zeigt zuerst klare Unterschreitungen, danach knappe Fälle über der Hürde.`;
 
+  const narrativeEditorialDetail =
+    narrative === "risk-start"
+      ? `${aboveCount} Szenarien liegen darüber. Oben stehen die knappsten Fälle an der 5%-Hürde, damit Kippmomente sofort sichtbar werden.`
+      : editorialDetail;
+
+  if (isNarrativeFlow) {
+    const flowHeadline = `${partyName(selected)} bleibt in ${belowCount} von ${state.scenarioCount} Szenarien unter der 5%-Hürde.`;
+
+    return {
+      title: "",
+      badge: "Die 5%-Hürde bleibt ein politischer Kipppunkt",
+      headline: flowHeadline,
+      detail: "",
+      headerTitle: "FDP und BSW drohen an der 5%-Hürde zu scheitern",
+      headerEyebrow: "Wenn am Sonntag Bundestagswahl wäre",
+      headerSubtitle:
+        "Rund um die Fünf-Prozent-Marke entscheidet sich, welche Stimmen später parlamentarische Wirkung entfalten.",
+      ordered,
+      highlight: (d) => isBelowThreshold(d, selected),
+      cardText: (d) => {
+        if (!isClarifiedNumericUnits()) {
+          return `${partyName(selected)}: ${shareOf(d, selected).toFixed(1)}%`;
+        }
+        const distanceToThreshold = isBelowThreshold(d, selected)
+          ? -Math.abs(5 - shareOf(d, selected))
+          : Math.abs(shareOf(d, selected) - 5);
+        return `${partyName(selected)}: ${formatThresholdDistanceCard(distanceToThreshold)}`;
+      },
+      dataMetric: "vote",
+      thresholdParty: selected,
+      segmentOrder: () => [
+        selected,
+        ...PARTY_ORDER.filter((party) => party !== selected),
+      ],
+      controls: {
+        type: "threshold",
+        options: thresholdRelevantParties(state.scenarios),
+        selected,
+      },
+      controlLabel:
+        "Welche Partei könnte ebenfalls den Einzug in den Bundestag verpassen?",
+    };
+  }
+
   return {
     title,
     headline,
-    detail: isJournalistic ? editorialDetail : detail,
+    detail: isJournalistic ? narrativeEditorialDetail : detail,
     ordered,
     highlight: (d) => isBelowThreshold(d, selected),
     cardText: (d) => {
@@ -861,8 +1141,10 @@ function task2bView() {
 }
 
 function task3View() {
-  const isJournalistic =
-    state.variants.editorialLanguage === "journalistic-optimized";
+  const languageVariant = editorialLanguageVariant();
+  const isJournalistic = languageVariant === "journalistic-optimized";
+  const isNarrativeFlow = languageVariant === "journalistic-flow";
+  const narrative = state.variants.entryNarrative ?? "standard";
   const coalition =
     state.coalitionOptions.find(
       (entry) => entry.id === state.selectedCoalition,
@@ -898,6 +1180,11 @@ function task3View() {
     if (aMajority !== bMajority) {
       return aMajority ? -1 : 1;
     }
+
+    if (narrative === "majority-start") {
+      return Math.abs(aSurplus) - Math.abs(bSurplus);
+    }
+
     if (aMajority && bMajority) {
       return bSurplus - aSurplus;
     }
@@ -915,6 +1202,11 @@ function task3View() {
   let detail =
     "Vorne stehen Szenarien mit Mehrheit. Innerhalb der Gruppen sortiert die Ansicht nach klaren bzw. knappen Mehrheiten.";
 
+  if (narrative === "majority-start") {
+    detail =
+      "Vorne stehen Szenarien mit Mehrheit. Innerhalb der Gruppen erscheinen zuerst die knappsten Mehrheiten und knappsten Fehlmehrheiten.";
+  }
+
   if (isExtended) {
     detail = `${noMajority} Szenarien erreichen keine Mehrheit. Vorne: Szenarien mit Mehrheit, sortiert nach Sitzüberschuss. Hinten: fehlende Mehrheiten, sortiert nach Abstand. Gezeigt werden realistische Koalitionen. AfD-Bündnisse und Union+LINKE-Konstellationen sind ausgeschlossen.`;
   }
@@ -931,10 +1223,52 @@ function task3View() {
     ? `${noMajority} Szenarien bleiben ohne Mehrheit. Oben stehen Mehrheiten mit dem größten Sitzpuffer, darunter Konstellationen knapp unter der Mehrheit.`
     : "Die Karten zeigen zuerst Konstellationen mit Mehrheit und danach die Fälle, in denen das Bündnis knapp darunter bleibt.";
 
+  const narrativeEditorialDetail =
+    narrative === "majority-start"
+      ? `${noMajority} Szenarien bleiben ohne Mehrheit. Im Fokus stehen zuerst die knappsten Mehrheiten und knappsten Fehlmehrheiten, weil sie politisch besonders entscheidend sind.`
+      : editorialDetail;
+
+  if (isNarrativeFlow) {
+    const flowHeadline = `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Szenarien eine parlamentarische Mehrheit.`;
+
+    return {
+      title: "",
+      badge: "Regierungsfähigkeit entscheidet sich an wenigen Sitzen",
+      headline: flowHeadline,
+      detail: "",
+      headerTitle: "Kenia-Koalition gilt aktuell als besonders wahrscheinlich",
+      headerEyebrow: "Wenn am Sonntag Bundestagswahl wäre",
+      headerSubtitle:
+        "Ob eine Koalition regieren kann, entscheidet sich häufig an knappen Sitzabständen zur Mehrheit.",
+      ordered,
+      highlight: (d) => coalitionMajority(d, coalition.parties),
+      cardText: (d) => {
+        const value = coalitionSurplus(d, coalition.parties);
+        if (isClarifiedNumericUnits()) {
+          return formatMajorityDistanceCard(value);
+        }
+        const label = value >= 0 ? "Mehrheit" : "Fehlt";
+        return `${label}: ${Math.abs(value).toFixed(1)} Sitz-%`;
+      },
+      dataMetric: "seat",
+      coalitionParties: coalition.parties,
+      segmentOrder: () => [
+        ...coalition.parties,
+        ...PARTY_ORDER.filter((party) => !coalition.parties.includes(party)),
+      ],
+      controls: {
+        type: "coalition",
+        options: state.coalitionOptions.map((d) => d.id),
+        selected: coalition.id,
+      },
+      controlLabel: "Welche Koalition soll im Mehrheitscheck stehen?",
+    };
+  }
+
   return {
     title,
     headline,
-    detail: isJournalistic ? editorialDetail : detail,
+    detail: isJournalistic ? narrativeEditorialDetail : detail,
     ordered,
     highlight: (d) => coalitionMajority(d, coalition.parties),
     cardText: (d) => {
@@ -962,6 +1296,7 @@ function task3View() {
 function renderSubControls(view) {
   const container = d3.select("#sub-controls");
   container.html("");
+  const alternativeOnly = isAlternativeOnlyInteractionMode();
 
   const controlRows = [
     {
@@ -978,23 +1313,33 @@ function renderSubControls(view) {
     },
   ];
 
-  if (view.controls.type !== "none") {
+  if (view.controls.type !== "none" && !alternativeOnly) {
     const isExtended =
       state.variants.explanationDepth === "extended-transparency";
 
     let label;
+    const isNarrativeFlow = isNarrativeFlowLanguage();
     if (view.controls.type === "leader") {
-      label = isExtended
-        ? "Welche Partei soll im Fokus stehen?"
-        : "Fokuspartei Führung:";
+      label = isNarrativeFlow
+        ? (view.controlLabel ?? "Wessen Vorsprung soll im Fokus stehen?")
+        : isExtended
+          ? "Welche Partei soll im Fokus stehen?"
+          : "Fokuspartei Führung:";
     } else if (view.controls.type === "threshold") {
-      label = isExtended
-        ? "Für welche Partei den Schwellenwert prüfen?"
-        : "Partei an der 5%-Hürde:";
+      label = isNarrativeFlow
+        ? (view.controlLabel ??
+          "Bei welcher Partei ist die 5%-Hürde besonders kritisch?")
+        : isExtended
+          ? "Für welche Partei den Schwellenwert prüfen?"
+          : "Partei an der 5%-Hürde:";
     } else {
-      label = isExtended ? "Welche Koalition untersuchen?" : "Mehrheitsoption:";
+      label = isNarrativeFlow
+        ? (view.controlLabel ??
+          "Welche Koalition soll im Mehrheitscheck stehen?")
+        : isExtended
+          ? "Welche Koalition untersuchen?"
+          : "Mehrheitsoption:";
     }
-
     controlRows.push({
       id: "context",
       fieldClass: "control-context",
@@ -1056,13 +1401,29 @@ function renderSubControls(view) {
 }
 
 function renderSummary(view) {
-  const isJournalistic =
-    state.variants.editorialLanguage === "journalistic-optimized";
+  const isJournalistic = isJournalisticLanguage();
+  const isNarrativeFlow = isNarrativeFlowLanguage();
   const summary = d3.select("#summary");
   summary.html("");
-  summary.append("h2").text(view.title);
-  summary.append("p").text(view.headline);
-  summary.append("p").style("margin-top", "6px").text(view.detail);
+
+  if (isNarrativeFlow && view.badge) {
+    summary.append("p").attr("class", "summary-badge").text(view.badge);
+  }
+
+  if (view.title) {
+    summary.append("h2").text(view.title);
+  }
+
+  if (isNarrativeFlow && view.intro) {
+    summary.append("p").text(view.intro);
+  }
+
+  if (view.headline) {
+    summary.append("p").text(view.headline);
+  }
+  if (view.detail) {
+    summary.append("p").style("margin-top", "6px").text(view.detail);
+  }
 
   if (!isJournalistic) {
     summary
@@ -1083,6 +1444,88 @@ function renderSummary(view) {
         "Die Anordnung zeigt die Häufigkeit über alle Szenarien. Die aktuelle Auswahl hebt passende Szenarien hervor, ohne die Reihenfolge zu ändern.",
       );
   }
+
+  renderInlineFocusComplex(summary, view);
+}
+
+function renderInlineFocusComplex(summary, view) {
+  if (!isAlternativeOnlyInteractionMode()) {
+    return;
+  }
+
+  const controls = view.controls ?? {
+    type: "none",
+    options: [],
+    selected: null,
+  };
+  if (controls.type === "none") {
+    return;
+  }
+
+  const alternatives = (controls.options ?? []).filter(
+    (option) => option !== controls.selected,
+  );
+
+  if (alternatives.length === 0) {
+    return;
+  }
+
+  const isNarrativeFlow = isNarrativeFlowLanguage();
+
+  const focusLabelByType = isNarrativeFlow
+    ? {
+        leader: "Wer könnte den Vorsprung drehen?",
+        threshold:
+          "Welche Partei könnte ebenfalls den Einzug in den Bundestag verpassen?",
+        coalition: "Welche Koalition ist die wichtigste Alternative?",
+      }
+    : {
+        leader: "Eine weitere Partei liegt dicht auf den Fersen",
+        threshold: "Eine weitere Partei droht an der 5%-Hürde zu scheitern",
+        coalition: "Eine weitere Koalition könnte entstehen",
+      };
+
+  const block = summary
+    .append("div")
+    .attr("class", "control-field control-context inline-focus-complex")
+    .style("margin-top", "10px");
+
+  block
+    .append("label")
+    .text(focusLabelByType[controls.type] ?? "Auswahl zur aktiven Perspektive");
+
+  const buttonWrap = block.append("div").attr("class", "control-alternatives");
+
+  buttonWrap
+    .selectAll("button")
+    .data(alternatives)
+    .join("button")
+    .attr("type", "button")
+    .attr("class", "task-btn context-switch-btn")
+    .text((d) => {
+      if (controls.type === "coalition") {
+        const coalitionLabel =
+          state.coalitionOptions.find((entry) => entry.id === d)?.label ?? d;
+        return isNarrativeFlow
+          ? `Alternative prüfen: ${coalitionLabel}`
+          : `Blick auf ${coalitionLabel}`;
+      }
+      return isNarrativeFlow
+        ? `Alternative prüfen: ${partyName(d)}`
+        : `Blick auf ${partyName(d)}`;
+    })
+    .on("click", (_, value) => {
+      if (controls.type === "leader") {
+        state.selectedLeader = value;
+      }
+      if (controls.type === "threshold") {
+        state.selectedThresholdParty = value;
+      }
+      if (controls.type === "coalition") {
+        state.selectedCoalition = value;
+      }
+      render();
+    });
 }
 
 function renderLandscape(view) {

@@ -2210,21 +2210,329 @@ Wording in Szenario-Karten
 
 ---
 
-### 43. Commits 2.1.0 und 2.1.1 zusammenführen und pushen
+### 43. Journalistic Added Value – Pre-Check zu Entry-Logik und narrativer Gewichtung
 
 **Model:** GPT-5.3-Codex
 
-**Request:** Please merge commits and pushs: Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung and Version 2.1.0 - Verständnis & Korrektheit, Style Transfer
-
-All changements should be displayed under Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung
+**Request:** Follow instructions in [Journalistic Added Value.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Journalistic%20Added%20Value.prompt.md).
 
 **Action:**
 
-- ✅ Die Commits `Version 2.1.0 - Verständnis & Korrektheit, Style Transfer` und `Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung` wurden zu einem Commit zusammengeführt.
-- ✅ Das Ergebnis liegt als einzelner Commit `Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung` auf `main`.
-- ✅ Force-Push mit `--force-with-lease` wurde erfolgreich durchgeführt.
+- 🔄 Relevanzdiagnose auf Basis von Start/Test-Logik und Framework vorbereitet.
+- 🔄 Entry-Strategien als 2–3 klar unterscheidbare Varianten zur Diskussion vorbereitet (ohne Implementierung).
+- 🔄 Impact Assessment (Insight, Fehlinterpretationsrisiko, Interaktionsfolgen, Regressionsrisiko) vorbereitet.
+- ⏸ Implementierung bewusst ausgesetzt bis zur expliziten Freigabe.
+- ✅ Freigabe zur Umsetzung im Test-Umfeld erfasst.
+- ✅ Richtungsentscheidung erfasst: Alle drei Richtungen werden als Vergleich im Test-Variantensystem umgesetzt.
+- ✅ `src/main-test.js` erweitert: Neues Panel `Einstieg & Erzählrichtung` mit `Standard` + Richtungen A/B/C.
+- ✅ Entry-Defaults je Richtung umgesetzt (A → `Mehrheiten`, B → `5%-Hürde`, C → `Führung`) inklusive narrativer Sortier-/Emphase-Anpassungen.
+- ✅ `changelog.md` auf Version `0.4.19` aktualisiert.
 
 **Status:** ✅ Completed
+
+---
+
+### 44. Dynamische Alternative-Only Interaktionslogik für Entry und Perspektivwechsel
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+The current entry-state logic does not consistently reflect the active narrative state in the button system. The selected entry and the visible button state are not dynamically synchronized. Additionally, selecting other buttons apart from the entry state does not consistently trigger the corresponding visualization change.
+
+Furthermore, the current dropdown behavior (see screenshot):
+
+- “Blick auf welche Partei?”
+- "Welche Partei steht im 5%-Risiko-Fokus?"
+- “Welches Bündnis steht im Mehrheitsfokus?”
+  does not follow the same interaction logic. The active selection remains selectable instead of only offering alternative views. This creates redundancy and reduces clarity.
+
+Goal:
+When one entry state is active (e.g. "Mehrheiten"), the corresponding button should not remain visible and selected. Instead, it should disappear, allowing only the alternative entry options to become selectable. Each selection should lead to the related visualization changes (as already implemented — no content changes).
+
+The intended behavior is a dynamic entry-state system where:
+
+- The active state is displayed as content.
+- Its corresponding button is hidden while active.
+- Only the alternative entry buttons are visible.
+- Selecting another entry replaces the current state and updates button visibility accordingly.
+
+Additionally, the same alternative-only logic must apply to all current dropdown selection systems:
+
+- The currently active selection must not be selectable. Only alternative options should be displayed as actionable choices.
+- The active state should be displayed as a label, not as a selectable dropdown entry.
+- Specific behavior per section:
+
+"Wer führt?"
+-> Initially, the leading party (currently Union) is displayed.
+-> Instead of showing a dropdown with Union selected, display Button: "Blick auf AfD"
+-> If "Blick auf AfD" is selected: The view switches to AfD.
+-> The button dynamically changes to: "Blick auf Union"
+-> Only the alternative party is selectable at any time.
+
+"5% Hürde"
+-> Initially, FDP is displayed.
+-> Instead of showing a dropdown with FDP selected: Button: "Blick auf BSW"
+-> If BSW is selected, the view switches and dynamically changes to: "Blick auf FDP"
+-> The active party must never be selectable.
+
+“Welches Bündnis steht im Mehrheitsfokus?”)
+-> Initially, the primary coalition (e.g. "Union + SPD + Grüne") is displayed.
+-> The dropdown currently lists: Union + SPD + Grüne (selected); Union + SPD (alternative)
+-> This must be refactored so that: The active coalition is displayed as label (not selectable). Only the alternative coalition appears as a button: "Blick auf Union + SPD"
+-> If "Union + SPD" is selected, the view switches accordingly and the button dynamically changes to: "Blick auf Union + SPD + Grüne"
+-> The active coalition must never appear as a selectable option.
+
+- This dynamic alternative-only logic must apply consistently across:
+  -> Entry states
+  -> Party perspective selections
+  -> Threshold perspective selections
+  ->Coalition perspective selections
+
+Important:
+This is purely a structural and interaction logic change.
+
+Do NOT modify:
+
+- Any text
+- Any badge wording
+- The "Standard" variant (must remain the main-start.js/index-start.html version)
+- Any calculations, ordering logic, scenario counts, or numerical outputs
+
+Apply this update only to the variants under "Einstieg & Erzählrichtung" except "Standard".
+
+Definition of Done:
+
+- When an entry state is active, its corresponding button is hidden.
+- The dropdowns are replaced by an alternative-only selection logic.
+- The active perspective (party, threshold case, coalition) is displayed but not selectable.
+- Only the alternative perspective appears as a button.
+
+Selecting an alternative updates the visualization and swaps the button accordingly.
+
+- No text changes were made.
+- No numerical logic, thresholds, or calculations were altered.
+
+**Action:**
+
+- ✅ `src/main-test.js`: Entry-State-Buttons auf Alternative-Only umgestellt, sobald `Einstieg & Erzählrichtung` ungleich `Standard` ist (aktive Perspektive-Task wird ausgeblendet).
+- ✅ `src/main-test.js`: Kontextsteuerung (`Blick auf welche Partei?`, `Welche Partei steht im 5%-Risiko-Fokus?`, `Welches Bündnis steht im Mehrheitsfokus?`) auf aktive Anzeige + nur alternative Umschalt-Buttons umgestellt.
+- ✅ `src/main-test.js`: Render-Synchronisierung angepasst, damit Button-Sichtbarkeit und aktiver Inhalt bei jedem Wechsel konsistent bleiben.
+- ✅ `index-test.html`: UI-Styles für aktive Kontextanzeige und alternative Umschalt-Buttons ergänzt.
+- ✅ `changelog.md` auf Version `0.4.20` aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 45. Kontext-Komplex nur bei Alternativen sichtbar + alternative Fokuslabels
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+Selected/active party or coalition is still marked in black in complex: "Welche Koalition untersuchen?" "Für welche Partei den Schwellenwert untersuchen?" and "Welche Parteo soll im Fokus". The complex has no benefit if no alternative is selectable
+
+Goal:
+
+- Remove this general complex for all selections in which no alternative is selectable
+- Keep the complex for all selections in which there is an alternative
+  -> Remove selected/active party or coalition
+  -> Change text to "Eine weitere Partei liegt dicht auf den Fersen"; "Eine weitere Partei droht an der 5%-Hürde zu scheitern"; "Eine weitere Koalition könnte entstehen"
+
+**Action:**
+
+- ✅ `src/main-test.js`: Kontext-Komplex wird jetzt komplett ausgeblendet, wenn für die aktive Perspektive keine Alternative auswählbar ist.
+- ✅ `src/main-test.js`: In Alternative-Only-Modus wird die aktive Partei/Koalition im Komplex nicht mehr angezeigt; auswählbar bleiben nur Alternativen als Buttons.
+- ✅ `src/main-test.js`: Kontext-Labeltexte im Alternative-Only-Modus auf die drei gewünschten Formulierungen umgestellt.
+- ✅ `changelog.md` auf Version `0.4.21` aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 46. Fokus-Komplex und Perspektiv-Buttons in A/B/C unter Badge und über Karten platzieren
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Please implement the edited complex and the buttons "Wer führt?", "Wer riskiert 5%?" and "Welche Mehrheiten?" (apart from selected/active button) in variant A,B,C underneath the badge text and above the scenatio cards
+1st: Focus Complex
+2nd: Buttons
+
+**Action:**
+
+- ✅ `src/main-test.js`: Fokus-Komplex in A/B/C in den Summary-Bereich unter den Badge-Text verschoben (oberhalb der Szenario-Karten).
+- ✅ `src/main-test.js`: Reihenfolge umgesetzt wie gewünscht: 1) Fokus-Komplex, 2) Perspektiv-Buttons (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?` jeweils ohne aktive Option).
+- ✅ `src/main-test.js`: Fokus-Komplex im oberen `sub-controls`-Bereich in A/B/C entfernt, um Doppelungen zu vermeiden.
+- ✅ `changelog.md` auf Version `0.4.22` aktualisiert.
+
+**Status:** ✅ Completed
+
+---
+
+### 47. Neue Sprachvariante: Journalistisch optimiert – klarerer narrativer Flow
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+The current entry panels and selection states do not communicate the core message within a few seconds. The key takeaway is not immediately visible. The narrative feels explanatory rather than decisive. The text elements (title, badge, headline, subheadline, panel text) do not consistently follow a clear journalistic hierarchy.
+
+Goal/Task:
+
+- Add a new variant within "Redaktionelle Sprache" titled: "Journalistisch optimiert – klarerer narrativer Flow".
+- This new variant must apply to all entry states and selections:
+  "Wer führt?"
+  "Wer riskiert 5%"
+  "Welche Mehrheiten?"
+- For each of these states keep iterations you already did in ""Journalitisch optimiert - Interpretative Sprache.." (e.g. questions in buttons etc.), revise:
+- Visualization title; add Optional subheadline
+- change Badge text
+- Dropdown text
+- other text elements
+
+Introductory paragraph
+
+- The text must sound intuitive, newspaper-like, and immediately understandable.
+- The visualization title may follow the structure:
+  "Bundestagswahl 2025: [Core message]"
+  Core Messages
+  -> "Partei X liegt vorn, Partei Y dicht auf den Fersen"
+  -> "Koalition XY gilt aktuell als besonders wahrscheinlich"
+  -> "Partei X droht an 5% Hürde zu scheitern"
+  -> A concise subheadline may be added, if helpful and not repeating other text elements (like badge text)
+
+Other Text elements (e.g. Focus Switch, Badge)
+
+- All text components must correspond to each other but must not repeat each other = Each level adds precision without redundancy.
+- The storytelling must Lead with the key insight (no slow buildup).
+  -> Use clear, active, fluent journalistic phrasing.
+  -> Avoid abstract descriptions before stating the main conclusion.
+  -> Make political relevance immediately obvious.
+  -> Sound like a intuitive understandable and catchy newspaper style
+
+Important:
+
+- Only this new variant within "Redaktionelle Sprache" should be updated.
+- The following must remain completely unchanged:
+- "Standard" and "Journalistisch optimiert – Interpretative Sprache.." and a ll other panels and variants
+- Structure, logic, calculations, thresholds and Numerical outputs
+
+Definition of Done:
+
+- The core message of each revised state ("Mehrheiten", "5% Hürde", "Führung") is understandable within a few seconds.
+- The headline communicates the key political insight immediately and exactly as it is defined above
+- Title, subtitle, focus switch, badge and body text are aligned but not repetitive.
+- The tone feels intuitive, fluent, and newspaper-like.
+- No unintended changes occur in other variants.
+- All numerical logic and calculations remain unchanged.
+
+**Action:**
+
+- ✅ `src/main-test.js`: Neue Option im Panel `Redaktionelle Sprache` ergänzt: `Journalistisch optimiert – klarerer narrativer Flow`.
+- ✅ `src/main-test.js`: Eigener Textpfad nur für die neue Variante umgesetzt und auf alle drei Zustände angewendet (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?`) inklusive dynamischem Header-Titel (`Bundestagswahl 2025: ...`), optionaler Subheadline, Badge, Intro-Absatz, Headline und Detailtext.
+- ✅ `src/main-test.js`: Vorhandene Iterationen der bisherigen journalistischen Variante beibehalten (Frage-Buttons/Alternative-Only-Interaktion), zusätzlich Fokus-/Dropdown-Labels in der neuen Variante sprachlich geschärft.
+- ✅ `src/main-test.js`: Bestehende Varianten (`Standard`, `Journalistisch optimiert`) sowie Berechnungs-, Schwellen- und Sortierlogik unverändert gelassen.
+- ✅ `index-test.html`: `summary-badge`-Styling ergänzt, damit die neue Badge-Ebene klar und getrennt vom Fließtext erscheint.
+- ✅ `changelog.md`: Version auf `0.4.24` (PATCH) aktualisiert.
+- ✅ Fehlerprüfung durchgeführt (`src/main-test.js`, `index-test.html`): keine Fehler.
+
+**Status:** ✅ Completed
+
+---
+
+### 48. Bilder unter Entry 47 eingefügt
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Please add image-1.jpeg, image-2.jpeg and image-3.jpeg underneath entry 47 and above append anchor
+
+**Action:**
+
+- ✅ `assets/image-1.jpeg` unterhalb von Entry 47 eingebunden.
+- ✅ `assets/image-2.jpeg` unterhalb von Entry 47 eingebunden.
+- ✅ `assets/image-3.jpeg` unterhalb von Entry 47 eingebunden.
+
+![image-1](./assets/image-1.jpeg)
+
+![image-2](./assets/image-2.jpeg)
+
+![image-3](./assets/image-3.jpeg)
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 49. Flow-Variante: Badge- und Paneltexte entdoppeln und präzisieren
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+In the variant "Redaktionelle Sprache" "Journalistisch optimiert - klarerer narrativer Flow..." several badge and panel texts currently duplicate the headline message or contain statements that are factually incorrect in context. The layout structure is correct and must remain unchanged, but redundant or inaccurate phrasing needs to be removed or adjusted.
+
+Goal:
+
+- In the variant "Redaktionelle Sprache" "Journalistisch optimiert - klarerer narrativer Flow..." remove the prefix "Kernaussage:" in all badges. But keep the actual message in same layout: "Die Führung bleibt umkämpft"; "Die 5% Hürde bleibt ein politischer Kipppunkt", "Regierungsfähigkeit entscheidet sich an wenigen Sitzen"
+  -> These revisions apply across the sections: "Wer führt?", "Wer riskiert 5%?", "Welche Mehrheiten?"
+
+Specific adjustments:
+Section: "Wer führt?"
+
+- Change the overall title from "Bundestagswahl 2025:..." to: "Union liegt vorn, AfD dicht auf den Fersen" and above smaller subheadline: "Wenn am Sonntag Bundestagswahl wäre"
+- Delete the badge text: "Union liegt vorn, AFD dicht auf den Fersen" underneath the "Kernaussage" (Reason: It is already fully communicated in the title and should not be repeated.)
+
+Section: "Wer riskiert 5%?"
+
+- Change the title from "Bundestagswahl 2025:..." to: "FDP und BSW drohen an der 5% Hürde zu scheitern" and above smaller subheadline: "Wenn am Sonntag Bundestagswahl wäre"
+- Delete the badge text: "FDP droht an der 5% Hürde zu scheitern" underneath the "Kernaussage" (Reason: It duplicates the headline message.)
+- Delete the sentence: "0 Szenarien liegen darüber. Entscheidend sind die knappen ..." (Reason: Thisstatement does not apply and is factually misleading.)
+- Change in Focus Complex: "Welche Partei ist als Nächstes an der 5%-Hürde?" to: "Welche Partei könnte ebenfalls den Einzug in den Bundestag verpassen?"
+
+Section: "Welche Mehrheiten?"
+
+- Change the title from "Bundestagswahl 2025:..." to: "Kenia-Koalition gilt aktuell als besonders wahrscheinlich" and above smaller subheadline: "Wenn am Sonntag Bundestagswahl wäre"
+- Delete the badge sentence "Union + SPD + Grüne gilt aktuell als besonders wahrscheinlich" underneath the "Kernaussage" (Reason: Already fully expressed in the title.)
+- Delete the sentence: "0 Szenarien bleiben ohne Mehrheit. Besonders entscheidend sind knappe ..." (Reason: It is not factually accurate in this context.)
+
+Definition of Done:
+
+- These changes apply only to the variant "Redaktionelle Sprache" "Journalistisch optimiert - klarerer narrativer Flow..."
+- "Standard" and all other variants must remain unchanged.other variants remain fully unaffected.
+- The badge no longer displays "Kernaussage:" but keeps the actual message in any section.
+- Redundant badge texts that repeat the headline are removed.
+- The specified titles are updated exactly as defined.
+- The incorrect contextual sentences are removed.
+- No structural, visual, or logical changes occur outside the specified text elements.
+
+**Action:**
+
+- ✅ `src/main-test.js`: Nur in der Flow-Variante (`journalistic-flow`) das Badge-Präfix `Kernaussage:` entfernt und die drei gewünschten Kernbotschaften im bestehenden Badge-Layout belassen.
+- ✅ `src/main-test.js`: Header-Titel/Subheadline für `Wer führt?`, `Wer riskiert 5%?` und `Welche Mehrheiten?` exakt auf die vorgegebenen Formulierungen gesetzt.
+- ✅ `src/main-test.js`: Redundante Flow-Introtexte unter dem Badge entfernt, damit die Headline nicht doppelt erzählt wird.
+- ✅ `src/main-test.js`: Die als unzutreffend markierten Flow-Detailsätze in `5%-Hürde` und `Mehrheiten` entfernt.
+- ✅ `src/main-test.js`: Fokus-Komplex-Label in `5%-Hürde` (Flow) auf `Welche Partei könnte ebenfalls den Einzug in den Bundestag verpassen?` angepasst.
+- ✅ `changelog.md`: Version `0.4.27` (PATCH) ergänzt.
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 50. Small Iterations: Eyebrow + Entfernen von Flow-Summarytiteln
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Small Iterations
+
+1. "Wenn am Sonntag Bundestagswahl wäre should not replace old subheadline but should build new Eyebrow (in Overline Style). Please change the position and reinstall the subheadline from version before (journalistic, fluent, narrative)
+2. Delete badge headlines "Führungsbild in den Szenarien", "5%-Hürde im Szenarienvergleich" and "Mehrheitscheck im Szenarienvergleich
+
+**Action:**
+
+- ✅ `src/main-test.js`: Für `journalistic-flow` wurde `Wenn am Sonntag Bundestagswahl wäre` als eigene Header-Eyebrow-Zeile (Overline-Ebene) ergänzt, statt die Subheadline zu ersetzen.
+- ✅ `src/main-test.js`: Die narrativen Subheadlines aus der vorherigen Version in den drei Flow-States (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?`) wieder eingesetzt.
+- ✅ `src/main-test.js`: Flow-Summarytitel entfernt (`Führungsbild in den Szenarien`, `5%-Hürde im Szenarienvergleich`, `Mehrheitscheck im Szenarienvergleich`).
+- ✅ `src/main-test.js`: Summary-Rendering so angepasst, dass leere Titel-/Detailfelder nicht als leere Zeilen gerendert werden.
+- ✅ `index-test.html`: Overline-Styling für die neue Eyebrow-Zeile ergänzt (`.eyebrow`).
+- ✅ `changelog.md`: Version `0.4.28` (PATCH) ergänzt.
+
+**Status:** ⏸ Pending Approval (accept/reject)
 
 ---
 
