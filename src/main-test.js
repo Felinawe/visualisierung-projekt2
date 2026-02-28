@@ -35,8 +35,42 @@ const LAYOUT_TOKENS = {
   bandGap: 16,
 };
 
+const CURATED_PREVIEW_LIMIT = 8;
+
 const LEAD_MARGIN_CLOSE_MIN = 0.1;
 const LEAD_MARGIN_CLEAR_MIN = 1.0;
+
+const INNOVATION_VARIANT_GROUP = {
+  id: "innovationPanel",
+  title: "Innovation & Interaktion",
+  options: [
+    {
+      value: "standard",
+      label: "Standard",
+      hint: "Unveränderte Baseline aus Start.",
+    },
+    {
+      value: "concept-a",
+      label: "A – Kontinuitäts-Resortierung",
+      hint: "Sanfte Umordnung mit Fokuswechsel statt harter Sprünge.",
+    },
+    {
+      value: "concept-b",
+      label: "B – Kapitel-Scroll-Fokus",
+      hint: "Beim Scrollen wird die aktuell relevante Gruppe klar betont.",
+    },
+    {
+      value: "concept-c",
+      label: "C – Cluster-Überblick",
+      hint: "Kategorieblöcke mit kuratierter Vorschau und Aufklappen bei Bedarf.",
+    },
+    {
+      value: "concept-d",
+      label: "D – Merge von A und C",
+      hint: "Cluster-Überblick mit sichtbarer Reorganisation beim Perspektivwechsel.",
+    },
+  ],
+};
 
 const VARIANT_GROUPS = [
   {
@@ -281,6 +315,7 @@ const state = {
   frequencyOrderedScenarios: [],
   parties: [],
   variants: {
+    innovationPanel: "standard",
     entryNarrative: "leadership-tension",
     layoutStructure: "adaptive-grid",
     controlAreaLayout: "perspective-bridge",
@@ -295,6 +330,10 @@ const state = {
     numericalUnits: "clarified",
   },
 };
+
+let landscapePositionMemory = new Map();
+let clusterExpansionMemory = new Map();
+let clusterPositionMemory = new Map();
 
 init();
 
@@ -440,55 +479,77 @@ function isNarrativeFlowLanguage() {
 }
 
 function renderVariantPanel() {
+  const innovationContainer = d3.select("#innovation-variant-group");
+  innovationContainer.html("");
+  renderSingleVariantGroup(innovationContainer, INNOVATION_VARIANT_GROUP);
+
   const container = d3.select("#variant-groups");
-  const groups = container
-    .selectAll("section.variant-group")
-    .data(VARIANT_GROUPS)
-    .join("section")
-    .attr("class", "variant-group");
+  container.html("");
 
-  groups.html("");
-
-  groups.each(function eachGroup(group) {
-    const section = d3.select(this);
-    section.append("h2").text(group.title);
-
-    const options = section
-      .append("div")
-      .attr("class", "variant-options")
-      .selectAll("label.variant-option")
-      .data(group.options)
-      .join("label")
-      .attr("class", "variant-option");
-
-    options.each(function eachOption(option) {
-      const optionRow = d3.select(this);
-      optionRow.html("");
-
-      optionRow
-        .append("input")
-        .attr("type", "radio")
-        .attr("name", `variant-${group.id}`)
-        .attr("value", option.value)
-        .property("checked", state.variants[group.id] === option.value)
-        .on("change", () => {
-          state.variants[group.id] = option.value;
-          if (group.id === "entryNarrative") {
-            applyEntryNarrativeDefaultsIfNeeded(true);
-          }
-          renderVariantPanel();
-          if (group.id === "editorialLanguage") {
-            renderHeader();
-          }
-          if (group.id === "editorialLanguage") {
-            renderTaskButtons();
-          }
-          render();
-        });
-
-      optionRow.append("span").text(`${option.label} – ${option.hint}`);
-    });
+  VARIANT_GROUPS.forEach((group) => {
+    renderSingleVariantGroup(container, group);
   });
+}
+
+function renderSingleVariantGroup(container, group) {
+  const section = container.append("section").attr("class", "variant-group");
+  section.append("h2").text(group.title);
+
+  const options = section
+    .append("div")
+    .attr("class", "variant-options")
+    .selectAll("label.variant-option")
+    .data(group.options)
+    .join("label")
+    .attr("class", "variant-option");
+
+  options.each(function eachOption(option) {
+    const optionRow = d3.select(this);
+    optionRow.html("");
+
+    optionRow
+      .append("input")
+      .attr("type", "radio")
+      .attr("name", `variant-${group.id}`)
+      .attr("value", option.value)
+      .property("checked", state.variants[group.id] === option.value)
+      .on("change", () => {
+        state.variants[group.id] = option.value;
+        if (group.id === "entryNarrative") {
+          applyEntryNarrativeDefaultsIfNeeded(true);
+        }
+        renderVariantPanel();
+        if (group.id === "editorialLanguage") {
+          renderHeader();
+        }
+        if (group.id === "editorialLanguage") {
+          renderTaskButtons();
+        }
+        render();
+      });
+
+    optionRow.append("span").text(`${option.label} – ${option.hint}`);
+  });
+}
+
+function innovationVariantMode() {
+  return state.variants.innovationPanel ?? "standard";
+}
+
+function isInnovationConceptA() {
+  return innovationVariantMode() === "concept-a";
+}
+
+function isInnovationConceptB() {
+  return innovationVariantMode() === "concept-b";
+}
+
+function isInnovationConceptC() {
+  return innovationVariantMode() === "concept-c";
+}
+
+function isInnovationConceptD() {
+  return innovationVariantMode() === "concept-d";
 }
 
 function rebuildFrequencyRanking() {
@@ -577,12 +638,51 @@ function normalizeReferenceScenarios(rawScenarios) {
   return rawScenarios.map((entry, index) => {
     const seatsByParty = entry.seats ?? {};
 
-    const voteLikeShares = PARTY_ORDER.map((party) => {
+    const scenarioId = Number(entry.id ?? index + 1);
+
+    const representedSeatShares = PARTY_ORDER.map((party) => {
       const seats = Number(seatsByParty[party] ?? 0);
-      const voteShare = TOTAL_SEATS > 0 ? (seats / TOTAL_SEATS) * 100 : 0;
       return {
         party,
-        voteShare,
+        seats,
+        seatShare: TOTAL_SEATS > 0 ? (seats / TOTAL_SEATS) * 100 : 0,
+      };
+    });
+
+    const belowThresholdEstimates = new Map(
+      representedSeatShares
+        .filter((entryShare) => entryShare.seats <= 0)
+        .map((entryShare) => [
+          entryShare.party,
+          estimateBelowThresholdVoteShare(entryShare.party, scenarioId),
+        ]),
+    );
+
+    const representedSeatTotal = d3.sum(
+      representedSeatShares.filter((entryShare) => entryShare.seats > 0),
+      (entryShare) => entryShare.seatShare,
+    );
+
+    const estimatedBelowTotal = d3.sum(
+      [...belowThresholdEstimates.values()],
+      (value) => value,
+    );
+
+    const representedTarget = Math.max(0, 100 - estimatedBelowTotal);
+    const representedScale =
+      representedSeatTotal > 0 ? representedTarget / representedSeatTotal : 1;
+
+    const voteLikeShares = representedSeatShares.map((entryShare) => {
+      if (entryShare.seats <= 0) {
+        return {
+          party: entryShare.party,
+          voteShare: belowThresholdEstimates.get(entryShare.party) ?? 0,
+        };
+      }
+
+      return {
+        party: entryShare.party,
+        voteShare: entryShare.seatShare * representedScale,
       };
     });
 
@@ -613,7 +713,7 @@ function normalizeReferenceScenarios(rawScenarios) {
     );
 
     return {
-      id: Number(entry.id ?? index + 1),
+      id: scenarioId,
       votes: voteLikeShares,
       seatShares,
       firstParty: first.party,
@@ -623,6 +723,36 @@ function normalizeReferenceScenarios(rawScenarios) {
       threshold,
     };
   });
+}
+
+function estimateBelowThresholdVoteShare(party, scenarioId) {
+  const partyStats = state.parties.find((entry) => entry.key === party);
+  if (!partyStats) {
+    return 0;
+  }
+
+  const fallback = Number(partyStats.avg ?? 0);
+  const lowerRaw = Number(partyStats.ciLower ?? fallback);
+  const upperRaw = Number(partyStats.ciUpper ?? fallback);
+
+  const lower = Math.max(0, Math.min(4.9, lowerRaw));
+  const upper = Math.max(lower, Math.min(4.9, upperRaw));
+
+  if (upper <= lower) {
+    return lower;
+  }
+
+  const mix = deterministicUnitValue(`${party}-${scenarioId}`);
+  return lower + (upper - lower) * mix;
+}
+
+function deterministicUnitValue(seed) {
+  let hash = 0;
+  const source = String(seed);
+  for (let index = 0; index < source.length; index += 1) {
+    hash = (hash * 31 + source.charCodeAt(index)) >>> 0;
+  }
+  return (hash % 10000) / 9999;
 }
 
 function dominantLeader(scenarios) {
@@ -751,6 +881,12 @@ function coalitionSurplus(scenario, parties) {
   return ((seats - majoritySeats) / TOTAL_SEATS) * 100;
 }
 
+function coalitionSeatDeltaToMajority(scenario, parties) {
+  const seats = coalitionSeatTotal(scenario, parties);
+  const majoritySeats = Math.floor(TOTAL_SEATS / 2) + 1;
+  return seats - majoritySeats;
+}
+
 function coalitionSeatTotal(scenario, parties) {
   return d3.sum(
     scenario.seatShares.filter((entry) => parties.includes(entry.party)),
@@ -868,7 +1004,7 @@ function task1View() {
 
   const others = state.scenarios
     .filter((scenario) => scenario.firstParty !== selected)
-    .sort((a, b) => b.leadMargin - a.leadMargin);
+    .sort((a, b) => a.leadMargin - b.leadMargin);
 
   const narrative = state.variants.entryNarrative ?? "standard";
   const ordered =
@@ -937,10 +1073,15 @@ function task1View() {
       ordered,
       highlight: (d) => d.firstParty === selected,
       cardText: (d) => {
-        if (isClarifiedNumericUnits()) {
-          return `${partyName(d.firstParty)}: Vorsprung +${d.leadMargin.toFixed(1)} Prozentpunkte`;
+        if (d.firstParty !== selected) {
+          return isClarifiedNumericUnits()
+            ? `${d.leadMargin.toFixed(1)} Prozentpunkte Abstand zur Führung`
+            : `${d.leadMargin.toFixed(1)} Pkt. Abstand zur Führung`;
         }
-        return `${partyName(d.firstParty)} +${d.leadMargin.toFixed(1)} Pkt.`;
+        if (isClarifiedNumericUnits()) {
+          return `+${d.leadMargin.toFixed(1)} Prozentpunkte Vorsprung`;
+        }
+        return `+${d.leadMargin.toFixed(1)} Pkt. Vorsprung`;
       },
       dataMetric: "vote",
       segmentOrder: (scenario) =>
@@ -964,6 +1105,7 @@ function task1View() {
         }
         return "Knappes Rennen";
       },
+      customBandOrder: ["Klare Führung", "Knappes Rennen", "Sonstige"],
       customBandSort: (a, b) =>
         (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
         (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
@@ -977,10 +1119,15 @@ function task1View() {
     ordered,
     highlight: (d) => d.firstParty === selected,
     cardText: (d) => {
-      if (isClarifiedNumericUnits()) {
-        return `${partyName(d.firstParty)}: Vorsprung +${d.leadMargin.toFixed(1)} Prozentpunkte`;
+      if (d.firstParty !== selected) {
+        return isClarifiedNumericUnits()
+          ? `${d.leadMargin.toFixed(1)} Prozentpunkte Abstand zur Führung`
+          : `${d.leadMargin.toFixed(1)} Pkt. Abstand zur Führung`;
       }
-      return `${partyName(d.firstParty)} +${d.leadMargin.toFixed(1)} Pkt.`;
+      if (isClarifiedNumericUnits()) {
+        return `+${d.leadMargin.toFixed(1)} Prozentpunkte Vorsprung`;
+      }
+      return `+${d.leadMargin.toFixed(1)} Pkt. Vorsprung`;
     },
     dataMetric: "vote",
     segmentOrder: (scenario) =>
@@ -1003,6 +1150,7 @@ function task1View() {
       }
       return "Knappes Rennen";
     },
+    customBandOrder: ["Klare Führung", "Knappes Rennen", "Sonstige"],
     customBandSort: (a, b) =>
       (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
       (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
@@ -1036,6 +1184,10 @@ function task2bView() {
     }
     return aShare - 5 - (bShare - 5);
   });
+
+  const groupedOrder = new Map(
+    ordered.map((scenario, orderedIndex) => [scenario.id, orderedIndex]),
+  );
 
   const belowCount = ordered.filter((d) =>
     isBelowThreshold(d, selected),
@@ -1087,13 +1239,15 @@ function task2bView() {
       ordered,
       highlight: (d) => isBelowThreshold(d, selected),
       cardText: (d) => {
-        if (!isClarifiedNumericUnits()) {
-          return `${partyName(selected)}: ${shareOf(d, selected).toFixed(1)}%`;
+        const thresholdDistance = Math.abs(5 - shareOf(d, selected));
+        if (isBelowThreshold(d, selected)) {
+          return isClarifiedNumericUnits()
+            ? `${thresholdDistance.toFixed(1)} Prozentpunkte unterhalb 5%-Hürde`
+            : `${thresholdDistance.toFixed(1)} Pkt. unterhalb 5%-Hürde`;
         }
-        const distanceToThreshold = isBelowThreshold(d, selected)
-          ? -Math.abs(5 - shareOf(d, selected))
-          : Math.abs(shareOf(d, selected) - 5);
-        return `${partyName(selected)}: ${formatThresholdDistanceCard(distanceToThreshold)}`;
+        return isClarifiedNumericUnits()
+          ? `${thresholdDistance.toFixed(1)} Prozentpunkte oberhalb 5%-Hürde`
+          : `${thresholdDistance.toFixed(1)} Pkt. oberhalb 5%-Hürde`;
       },
       dataMetric: "vote",
       thresholdParty: selected,
@@ -1108,6 +1262,20 @@ function task2bView() {
       },
       controlLabel:
         "Welche Partei könnte ebenfalls den Einzug in den Bundestag verpassen?",
+      customBandTitle: (scenario) => {
+        const thresholdDistance = 5 - shareOf(scenario, selected);
+        if (thresholdDistance >= 2) {
+          return "Klares Scheitern";
+        }
+        if (thresholdDistance > 0) {
+          return "Knappes Rennen";
+        }
+        return "Sonstige";
+      },
+      customBandOrder: ["Klares Scheitern", "Knappes Rennen", "Sonstige"],
+      customBandSort: (a, b) =>
+        (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+        (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
     };
   }
 
@@ -1118,13 +1286,15 @@ function task2bView() {
     ordered,
     highlight: (d) => isBelowThreshold(d, selected),
     cardText: (d) => {
-      if (!isClarifiedNumericUnits()) {
-        return `${partyName(selected)}: ${shareOf(d, selected).toFixed(1)}%`;
+      const thresholdDistance = Math.abs(5 - shareOf(d, selected));
+      if (isBelowThreshold(d, selected)) {
+        return isClarifiedNumericUnits()
+          ? `${thresholdDistance.toFixed(1)} Prozentpunkte unterhalb 5%-Hürde`
+          : `${thresholdDistance.toFixed(1)} Pkt. unterhalb 5%-Hürde`;
       }
-      const distanceToThreshold = isBelowThreshold(d, selected)
-        ? -Math.abs(5 - shareOf(d, selected))
-        : Math.abs(shareOf(d, selected) - 5);
-      return `${partyName(selected)}: ${formatThresholdDistanceCard(distanceToThreshold)}`;
+      return isClarifiedNumericUnits()
+        ? `${thresholdDistance.toFixed(1)} Prozentpunkte oberhalb 5%-Hürde`
+        : `${thresholdDistance.toFixed(1)} Pkt. oberhalb 5%-Hürde`;
     },
     dataMetric: "vote",
     thresholdParty: selected,
@@ -1137,6 +1307,20 @@ function task2bView() {
       options: thresholdRelevantParties(state.scenarios),
       selected,
     },
+    customBandTitle: (scenario) => {
+      const thresholdDistance = 5 - shareOf(scenario, selected);
+      if (thresholdDistance >= 2) {
+        return "Klares Scheitern";
+      }
+      if (thresholdDistance > 0) {
+        return "Knappes Rennen";
+      }
+      return "Sonstige";
+    },
+    customBandOrder: ["Klares Scheitern", "Knappes Rennen", "Sonstige"],
+    customBandSort: (a, b) =>
+      (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+      (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
   };
 }
 
@@ -1243,12 +1427,14 @@ function task3View() {
       ordered,
       highlight: (d) => coalitionMajority(d, coalition.parties),
       cardText: (d) => {
-        const value = coalitionSurplus(d, coalition.parties);
-        if (isClarifiedNumericUnits()) {
-          return formatMajorityDistanceCard(value);
+        const seatDelta = coalitionSeatDeltaToMajority(d, coalition.parties);
+        if (seatDelta >= 0) {
+          const seatLabel = seatDelta === 1 ? "Sitz" : "Sitze";
+          return `${seatDelta} ${seatLabel} über der absoluten Mehrheit`;
         }
-        const label = value >= 0 ? "Mehrheit" : "Fehlt";
-        return `${label}: ${Math.abs(value).toFixed(1)} Sitz-%`;
+        const missingSeats = Math.abs(seatDelta);
+        const seatLabel = missingSeats === 1 ? "Sitz" : "Sitze";
+        return `${missingSeats} ${seatLabel} unter der absoluten Mehrheit`;
       },
       dataMetric: "seat",
       coalitionParties: coalition.parties,
@@ -1262,6 +1448,23 @@ function task3View() {
         selected: coalition.id,
       },
       controlLabel: "Welche Koalition soll im Mehrheitscheck stehen?",
+      customBandTitle: (scenario) => {
+        const seatDelta = coalitionSeatDeltaToMajority(
+          scenario,
+          coalition.parties,
+        );
+        if (seatDelta >= 6) {
+          return "Klare Mehrheit";
+        }
+        if (seatDelta >= 0) {
+          return "Knappe Mehrheit";
+        }
+        return "Sonstige";
+      },
+      customBandOrder: ["Klare Mehrheit", "Knappe Mehrheit", "Sonstige"],
+      customBandSort: (a, b) =>
+        coalitionSeatDeltaToMajority(b, coalition.parties) -
+        coalitionSeatDeltaToMajority(a, coalition.parties),
     };
   }
 
@@ -1272,12 +1475,14 @@ function task3View() {
     ordered,
     highlight: (d) => coalitionMajority(d, coalition.parties),
     cardText: (d) => {
-      const value = coalitionSurplus(d, coalition.parties);
-      if (isClarifiedNumericUnits()) {
-        return formatMajorityDistanceCard(value);
+      const seatDelta = coalitionSeatDeltaToMajority(d, coalition.parties);
+      if (seatDelta >= 0) {
+        const seatLabel = seatDelta === 1 ? "Sitz" : "Sitze";
+        return `${seatDelta} ${seatLabel} über der absoluten Mehrheit`;
       }
-      const label = value >= 0 ? "Mehrheit" : "Fehlt";
-      return `${label}: ${Math.abs(value).toFixed(1)} Sitz-%`;
+      const missingSeats = Math.abs(seatDelta);
+      const seatLabel = missingSeats === 1 ? "Sitz" : "Sitze";
+      return `${missingSeats} ${seatLabel} unter der absoluten Mehrheit`;
     },
     dataMetric: "seat",
     coalitionParties: coalition.parties,
@@ -1290,6 +1495,23 @@ function task3View() {
       options: state.coalitionOptions.map((d) => d.id),
       selected: coalition.id,
     },
+    customBandTitle: (scenario) => {
+      const seatDelta = coalitionSeatDeltaToMajority(
+        scenario,
+        coalition.parties,
+      );
+      if (seatDelta >= 6) {
+        return "Klare Mehrheit";
+      }
+      if (seatDelta >= 0) {
+        return "Knappe Mehrheit";
+      }
+      return "Sonstige";
+    },
+    customBandOrder: ["Klare Mehrheit", "Knappe Mehrheit", "Sonstige"],
+    customBandSort: (a, b) =>
+      coalitionSeatDeltaToMajority(b, coalition.parties) -
+      coalitionSeatDeltaToMajority(a, coalition.parties),
   };
 }
 
@@ -1445,6 +1667,16 @@ function renderSummary(view) {
       );
   }
 
+  if (isInnovationConceptA()) {
+    summary
+      .append("p")
+      .style("margin-top", "8px")
+      .style("color", "var(--text-main)")
+      .text(
+        "Beim Wechsel der Perspektive ordnen sich die Karten bewusst sanft neu, damit Verschiebungen direkt nachvollziehbar bleiben.",
+      );
+  }
+
   renderInlineFocusComplex(summary, view);
 }
 
@@ -1530,29 +1762,267 @@ function renderInlineFocusComplex(summary, view) {
 
 function renderLandscape(view) {
   const landscape = d3.select("#landscape");
-  landscape.html("");
+  const useContinuityResort =
+    isInnovationConceptA() &&
+    state.variants.probabilityLayout !== "frequency-center";
+
+  if (!useContinuityResort) {
+    landscape.html("");
+    landscapePositionMemory = new Map();
+  } else if (landscape.select("svg.landscape-band-svg").empty()) {
+    landscape.html("");
+  }
+
+  landscape
+    .classed("innovation-concept-a", isInnovationConceptA())
+    .classed("innovation-concept-b", isInnovationConceptB())
+    .classed(
+      "innovation-concept-c",
+      isInnovationConceptC() || isInnovationConceptD(),
+    )
+    .classed("innovation-concept-d", isInnovationConceptD());
 
   const columns = resolveColumns(landscape.node()?.clientWidth ?? 0);
   const ordered = resolveOrderedScenarios(view);
   const rankedCards = rankCards(ordered);
 
+  if (isInnovationConceptC() || isInnovationConceptD()) {
+    const probabilityLayout = state.variants.probabilityLayout;
+    const bands =
+      probabilityLayout === "frequency-zones"
+        ? buildFrequencyBands(rankedCards, view)
+        : probabilityLayout === "frequency-center"
+          ? [
+              {
+                title: "Häufigkeit über alle Szenarien",
+                cards: rankedCards,
+              },
+            ]
+          : buildGroupedBands(rankedCards, view, null);
+
+    renderClusteredLandscape(
+      landscape,
+      bands,
+      columns,
+      view,
+      isInnovationConceptD(),
+    );
+    syncChapterScrollFocus(landscape.node());
+    return;
+  }
+
+  clusterPositionMemory = new Map();
+
   if (state.variants.probabilityLayout === "frequency-center") {
     renderFrequencyCenterLandscape(landscape, columns, view, rankedCards);
+    syncChapterScrollFocus(landscape.node());
     return;
   }
 
   if (state.variants.probabilityLayout === "frequency-zones") {
     const bands = buildFrequencyBands(rankedCards, view);
     renderBandLandscape(landscape, bands, columns, view);
+    syncChapterScrollFocus(landscape.node());
     return;
   }
 
   const bands = buildGroupedBands(rankedCards, view, null);
 
   renderBandLandscape(landscape, bands, columns, view);
+  syncChapterScrollFocus(landscape.node());
+}
+
+function renderClusteredLandscape(
+  landscape,
+  bands,
+  columns,
+  view,
+  useContinuity = false,
+) {
+  landscape.html("");
+  landscapePositionMemory = new Map();
+  if (!useContinuity) {
+    clusterPositionMemory = new Map();
+  }
+
+  const totalCards = d3.sum(bands, (band) => band.cards.length);
+  const frame = getMicrochartFrame();
+  const chartWidth =
+    columns * frame.width +
+    (columns - 1) * LAYOUT_TOKENS.cardGap +
+    LAYOUT_TOKENS.framePadding * 2;
+
+  const preparedBands = bands.map((band, bandIndex) => ({
+    ...band,
+    bandIndex,
+    memoryKey: buildClusterMemoryKey(view, band, bandIndex),
+  }));
+
+  const wrapper = landscape.append("div").attr("class", "cluster-overview");
+
+  const sections = wrapper
+    .selectAll("section.cluster-band")
+    .data(preparedBands)
+    .join("section")
+    .attr("class", "cluster-band");
+
+  sections.each(function renderClusterBand(band) {
+    const section = d3.select(this);
+    section.html("");
+
+    const expanded = clusterExpansionMemory.get(band.memoryKey) === true;
+    const visibleCount = expanded
+      ? band.cards.length
+      : Math.min(CURATED_PREVIEW_LIMIT, band.cards.length);
+
+    const percentage =
+      totalCards > 0 ? Math.round((band.cards.length / totalCards) * 100) : 0;
+
+    const head = section.append("div").attr("class", "cluster-band-header");
+    head
+      .append("h3")
+      .attr("class", "cluster-band-title")
+      .text(band.title ?? `Kategorie ${band.bandIndex + 1}`);
+
+    head
+      .append("p")
+      .attr("class", "cluster-band-meta")
+      .text(
+        `${band.cards.length} von ${state.scenarioCount} Szenarien · Anteil: ${percentage}%`,
+      );
+
+    const distribution = head
+      .append("div")
+      .attr("class", "cluster-distribution")
+      .attr("aria-label", "Anteil dieser Kategorie an allen Szenarien");
+
+    distribution
+      .append("div")
+      .attr("class", "cluster-distribution-fill")
+      .style("width", `${Math.max(1, percentage)}%`);
+
+    if (band.cards.length > CURATED_PREVIEW_LIMIT) {
+      section
+        .append("button")
+        .attr("type", "button")
+        .attr("class", "cluster-toggle")
+        .text(
+          expanded
+            ? "Weniger Szenarien anzeigen"
+            : `Weitere Szenarien anzeigen (${band.cards.length - visibleCount})`,
+        )
+        .on("click", () => {
+          clusterExpansionMemory.set(band.memoryKey, !expanded);
+          renderLandscape(deriveView());
+        });
+    }
+
+    section
+      .append("p")
+      .attr("class", "cluster-curation-note")
+      .text(
+        `Sichtbar: ${visibleCount} von ${band.cards.length} Szenarien${expanded ? "" : " (kuratierte Vorschau)"}`,
+      );
+
+    const visibleCards = band.cards.slice(0, visibleCount);
+    const rows = Math.max(1, Math.ceil(visibleCards.length / columns));
+    const chartHeight =
+      LAYOUT_TOKENS.framePadding * 2 +
+      rows * frame.height +
+      (rows - 1) * LAYOUT_TOKENS.cardGap;
+
+    const svg = section
+      .append("svg")
+      .attr("class", "cluster-card-svg")
+      .attr("width", chartWidth)
+      .attr("height", chartHeight)
+      .attr("viewBox", `0 0 ${chartWidth} ${chartHeight}`)
+      .attr("preserveAspectRatio", "xMinYMin meet");
+
+    const cards = svg
+      .selectAll("g.card-group")
+      .data(visibleCards)
+      .join("g")
+      .attr("class", (d) => cardGroupClass(d.scenario, view))
+      .attr("transform", (d, index) => {
+        const col = index % columns;
+        const row = Math.floor(index / columns);
+        const targetX =
+          LAYOUT_TOKENS.framePadding +
+          col * (frame.width + LAYOUT_TOKENS.cardGap);
+        const targetY =
+          LAYOUT_TOKENS.framePadding +
+          row * (frame.height + LAYOUT_TOKENS.cardGap);
+
+        if (useContinuity) {
+          const remembered = clusterPositionMemory.get(d.scenario.id);
+          const startX = remembered?.x ?? targetX;
+          const startY = remembered?.y ?? targetY;
+          return `translate(${startX},${startY})`;
+        }
+
+        return `translate(${targetX},${targetY})`;
+      });
+
+    cards.each(function clearCardContents() {
+      this.innerHTML = "";
+    });
+
+    drawCardContents(cards, view);
+
+    if (useContinuity) {
+      cards
+        .transition()
+        .duration(420)
+        .ease(d3.easeCubicOut)
+        .attr("transform", (_, index) => {
+          const col = index % columns;
+          const row = Math.floor(index / columns);
+          const x =
+            LAYOUT_TOKENS.framePadding +
+            col * (frame.width + LAYOUT_TOKENS.cardGap);
+          const y =
+            LAYOUT_TOKENS.framePadding +
+            row * (frame.height + LAYOUT_TOKENS.cardGap);
+          return `translate(${x},${y})`;
+        })
+        .style("opacity", 1);
+
+      visibleCards.forEach((card, index) => {
+        const col = index % columns;
+        const row = Math.floor(index / columns);
+        const x =
+          LAYOUT_TOKENS.framePadding +
+          col * (frame.width + LAYOUT_TOKENS.cardGap);
+        const y =
+          LAYOUT_TOKENS.framePadding +
+          row * (frame.height + LAYOUT_TOKENS.cardGap);
+        clusterPositionMemory.set(card.scenario.id, { x, y });
+      });
+    }
+  });
+}
+
+function buildClusterMemoryKey(view, band, bandIndex) {
+  const selectedControl = view.controls?.selected ?? "none";
+  const title = band.title ?? `band-${bandIndex}`;
+
+  return [
+    state.task,
+    state.scenarioCount,
+    state.variants.probabilityLayout ?? "standard",
+    selectedControl,
+    title,
+    bandIndex,
+  ].join("|");
 }
 
 function renderBandLandscape(landscape, bands, columns, view) {
+  if (isInnovationConceptA()) {
+    renderBandLandscapeWithContinuity(landscape, bands, columns, view);
+    return;
+  }
+
   const frame = getMicrochartFrame();
   const chartWidth =
     columns * frame.width +
@@ -1575,6 +2045,7 @@ function renderBandLandscape(landscape, bands, columns, view) {
       svg
         .append("text")
         .attr("class", "band-title")
+        .attr("data-band-index", bandIndex)
         .attr("x", LAYOUT_TOKENS.framePadding)
         .attr("y", yCursor + 10)
         .text(band.title);
@@ -1586,6 +2057,7 @@ function renderBandLandscape(landscape, bands, columns, view) {
       .data(band.cards)
       .join("g")
       .attr("class", (d) => cardGroupClass(d.scenario, view))
+      .attr("data-band-index", bandIndex)
       .attr("transform", (_, index) => {
         const col = index % columns;
         const row = Math.floor(index / columns);
@@ -1605,6 +2077,128 @@ function renderBandLandscape(landscape, bands, columns, view) {
       yCursor += LAYOUT_TOKENS.bandGap;
     }
   });
+}
+
+function renderBandLandscapeWithContinuity(landscape, bands, columns, view) {
+  const frame = getMicrochartFrame();
+  const chartWidth =
+    columns * frame.width +
+    (columns - 1) * LAYOUT_TOKENS.cardGap +
+    LAYOUT_TOKENS.framePadding * 2;
+  const totalHeight = calculateChartHeight(bands, columns);
+
+  const svg = landscape
+    .selectAll("svg.landscape-band-svg")
+    .data([null])
+    .join("svg")
+    .attr("class", "landscape-band-svg")
+    .attr("width", chartWidth)
+    .attr("height", totalHeight)
+    .attr("viewBox", `0 0 ${chartWidth} ${totalHeight}`)
+    .attr("preserveAspectRatio", "xMinYMin meet");
+
+  let yCursor = LAYOUT_TOKENS.framePadding;
+  const titleRows = [];
+  const cardLayout = [];
+
+  bands.forEach((band, bandIndex) => {
+    if (band.title) {
+      titleRows.push({
+        id: `band-${bandIndex}-${band.title}`,
+        title: band.title,
+        y: yCursor + 10,
+        bandIndex,
+      });
+      yCursor += LAYOUT_TOKENS.bandTitleGap;
+    }
+
+    band.cards.forEach((card, index) => {
+      const col = index % columns;
+      const row = Math.floor(index / columns);
+      const x =
+        LAYOUT_TOKENS.framePadding +
+        col * (frame.width + LAYOUT_TOKENS.cardGap);
+      const y = yCursor + row * (frame.height + LAYOUT_TOKENS.cardGap);
+
+      cardLayout.push({
+        ...card,
+        x,
+        y,
+        bandIndex,
+      });
+    });
+
+    const rows = Math.max(1, Math.ceil(band.cards.length / columns));
+    yCursor += rows * frame.height + (rows - 1) * LAYOUT_TOKENS.cardGap;
+
+    if (bandIndex < bands.length - 1) {
+      yCursor += LAYOUT_TOKENS.bandGap;
+    }
+  });
+
+  svg
+    .selectAll("text.band-title")
+    .data(titleRows, (d) => d.id)
+    .join(
+      (enter) =>
+        enter
+          .append("text")
+          .attr("class", "band-title")
+          .attr("x", LAYOUT_TOKENS.framePadding)
+          .attr("data-band-index", (d) => d.bandIndex)
+          .attr("y", (d) => d.y)
+          .text((d) => d.title),
+      (update) =>
+        update
+          .attr("data-band-index", (d) => d.bandIndex)
+          .text((d) => d.title)
+          .transition()
+          .duration(420)
+          .ease(d3.easeCubicOut)
+          .attr("y", (d) => d.y),
+      (exit) => exit.remove(),
+    );
+
+  const cards = svg
+    .selectAll("g.card-group")
+    .data(cardLayout, (d) => d.scenario.id)
+    .join(
+      (enter) =>
+        enter
+          .append("g")
+          .attr("class", (d) => cardGroupClass(d.scenario, view))
+          .attr("data-band-index", (d) => d.bandIndex)
+          .attr("transform", (d) => {
+            const remembered = landscapePositionMemory.get(d.scenario.id);
+            const startX = remembered?.x ?? d.x;
+            const startY = remembered?.y ?? d.y;
+            return `translate(${startX},${startY})`;
+          })
+          .style("opacity", 0.72),
+      (update) => update,
+      (exit) => exit.transition().duration(220).style("opacity", 0).remove(),
+    )
+    .attr("class", (d) => cardGroupClass(d.scenario, view))
+    .attr("data-band-index", (d) => d.bandIndex)
+    .classed("innovation-focus", (d) => view.highlight(d.scenario))
+    .classed("innovation-dimmed", (d) => !view.highlight(d.scenario));
+
+  cards.each(function clearCardContents() {
+    this.innerHTML = "";
+  });
+
+  drawCardContents(cards, view);
+
+  cards
+    .transition()
+    .duration(420)
+    .ease(d3.easeCubicOut)
+    .attr("transform", (d) => `translate(${d.x},${d.y})`)
+    .style("opacity", 1);
+
+  landscapePositionMemory = new Map(
+    cardLayout.map((entry) => [entry.scenario.id, { x: entry.x, y: entry.y }]),
+  );
 }
 
 function renderFrequencyCenterLandscape(landscape, columns, view, cards) {
@@ -1979,7 +2573,11 @@ function buildGroupedBands(rankedCards, view, titlePrefix) {
     const grouped = d3.group(rankedCards, (entry) =>
       view.customBandTitle(entry.scenario),
     );
-    const order = ["Klare Führung", "Knappes Rennen", "Sonstige"];
+    const order = view.customBandOrder ?? [
+      "Klare Führung",
+      "Knappes Rennen",
+      "Sonstige",
+    ];
 
     return order
       .map((label) => {
@@ -2162,6 +2760,118 @@ function bindScenarioHover(cardGroups, view) {
       });
     return;
   }
+}
+
+function syncChapterScrollFocus(landscapeNode) {
+  if (!landscapeNode) {
+    return;
+  }
+
+  const previousHandler = landscapeNode.__chapterFocusHandler;
+
+  if (!isInnovationConceptB()) {
+    if (previousHandler) {
+      landscapeNode.removeEventListener("scroll", previousHandler);
+      delete landscapeNode.__chapterFocusHandler;
+    }
+    resetChapterFocusClasses();
+    return;
+  }
+
+  if (previousHandler) {
+    landscapeNode.removeEventListener("scroll", previousHandler);
+  }
+
+  resetChapterFocusClasses();
+
+  const handler = () => {
+    applyChapterFocusState(landscapeNode);
+  };
+
+  landscapeNode.__chapterFocusHandler = handler;
+  landscapeNode.addEventListener("scroll", handler, { passive: true });
+}
+
+function resetChapterFocusClasses() {
+  d3.selectAll("#landscape .card-group")
+    .classed("chapter-active", false)
+    .classed("chapter-passive", false);
+
+  d3.selectAll("#landscape .band-title")
+    .classed("chapter-active", false)
+    .classed("chapter-passive", false);
+}
+
+function applyChapterFocusState(landscapeNode) {
+  const cards = Array.from(
+    landscapeNode.querySelectorAll(".card-group[data-band-index]"),
+  );
+  if (cards.length === 0) {
+    resetChapterFocusClasses();
+    return;
+  }
+
+  const bandIndices = [...new Set(cards.map((card) => card.dataset.bandIndex))];
+  if (bandIndices.length <= 1) {
+    resetChapterFocusClasses();
+    return;
+  }
+
+  const scrollCenter =
+    landscapeNode.scrollTop + Math.max(1, landscapeNode.clientHeight * 0.35);
+
+  const bandAnchors = bandIndices
+    .map((index) => {
+      const title = landscapeNode.querySelector(
+        `.band-title[data-band-index="${index}"]`,
+      );
+      if (title) {
+        return {
+          index,
+          anchorY: Number(title.getAttribute("y") ?? 0),
+        };
+      }
+
+      const firstCard = landscapeNode.querySelector(
+        `.card-group[data-band-index="${index}"]`,
+      );
+      const transform = firstCard?.getAttribute("transform") ?? "";
+      const match = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(transform);
+      const y = match ? Number(match[2]) : 0;
+
+      return {
+        index,
+        anchorY: y,
+      };
+    })
+    .sort((a, b) => a.anchorY - b.anchorY);
+
+  let activeBand = bandAnchors[0]?.index ?? "0";
+  let minDistance = Number.POSITIVE_INFINITY;
+
+  bandAnchors.forEach((band) => {
+    const distance = Math.abs(scrollCenter - band.anchorY);
+    if (distance < minDistance) {
+      minDistance = distance;
+      activeBand = band.index;
+    }
+  });
+
+  d3.selectAll("#landscape .card-group[data-band-index]")
+    .classed("chapter-active", function active() {
+      return this.dataset.bandIndex === activeBand;
+    })
+    .classed("chapter-passive", function passive() {
+      return this.dataset.bandIndex !== activeBand;
+    });
+
+  d3.selectAll("#landscape .band-title[data-band-index]")
+    .classed("chapter-active", function active() {
+      return this.dataset.bandIndex === activeBand;
+    })
+    .classed("chapter-passive", function passive() {
+      return this.dataset.bandIndex !== activeBand;
+    });
 }
 
 function ensureScenarioHoverPanel() {

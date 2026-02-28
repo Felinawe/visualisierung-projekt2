@@ -271,12 +271,51 @@ function normalizeReferenceScenarios(rawScenarios) {
   return rawScenarios.map((entry, index) => {
     const seatsByParty = entry.seats ?? {};
 
-    const voteLikeShares = PARTY_ORDER.map((party) => {
+    const scenarioId = Number(entry.id ?? index + 1);
+
+    const representedSeatShares = PARTY_ORDER.map((party) => {
       const seats = Number(seatsByParty[party] ?? 0);
-      const voteShare = TOTAL_SEATS > 0 ? (seats / TOTAL_SEATS) * 100 : 0;
       return {
         party,
-        voteShare,
+        seats,
+        seatShare: TOTAL_SEATS > 0 ? (seats / TOTAL_SEATS) * 100 : 0,
+      };
+    });
+
+    const belowThresholdEstimates = new Map(
+      representedSeatShares
+        .filter((entryShare) => entryShare.seats <= 0)
+        .map((entryShare) => [
+          entryShare.party,
+          estimateBelowThresholdVoteShare(entryShare.party, scenarioId),
+        ]),
+    );
+
+    const representedSeatTotal = d3.sum(
+      representedSeatShares.filter((entryShare) => entryShare.seats > 0),
+      (entryShare) => entryShare.seatShare,
+    );
+
+    const estimatedBelowTotal = d3.sum(
+      [...belowThresholdEstimates.values()],
+      (value) => value,
+    );
+
+    const representedTarget = Math.max(0, 100 - estimatedBelowTotal);
+    const representedScale =
+      representedSeatTotal > 0 ? representedTarget / representedSeatTotal : 1;
+
+    const voteLikeShares = representedSeatShares.map((entryShare) => {
+      if (entryShare.seats <= 0) {
+        return {
+          party: entryShare.party,
+          voteShare: belowThresholdEstimates.get(entryShare.party) ?? 0,
+        };
+      }
+
+      return {
+        party: entryShare.party,
+        voteShare: entryShare.seatShare * representedScale,
       };
     });
 
@@ -307,7 +346,7 @@ function normalizeReferenceScenarios(rawScenarios) {
     );
 
     return {
-      id: Number(entry.id ?? index + 1),
+      id: scenarioId,
       votes: voteLikeShares,
       seatShares,
       firstParty: first.party,
@@ -317,6 +356,36 @@ function normalizeReferenceScenarios(rawScenarios) {
       threshold,
     };
   });
+}
+
+function estimateBelowThresholdVoteShare(party, scenarioId) {
+  const partyStats = state.parties.find((entry) => entry.key === party);
+  if (!partyStats) {
+    return 0;
+  }
+
+  const fallback = Number(partyStats.avg ?? 0);
+  const lowerRaw = Number(partyStats.ciLower ?? fallback);
+  const upperRaw = Number(partyStats.ciUpper ?? fallback);
+
+  const lower = Math.max(0, Math.min(4.9, lowerRaw));
+  const upper = Math.max(lower, Math.min(4.9, upperRaw));
+
+  if (upper <= lower) {
+    return lower;
+  }
+
+  const mix = deterministicUnitValue(`${party}-${scenarioId}`);
+  return lower + (upper - lower) * mix;
+}
+
+function deterministicUnitValue(seed) {
+  let hash = 0;
+  const source = String(seed);
+  for (let index = 0; index < source.length; index += 1) {
+    hash = (hash * 31 + source.charCodeAt(index)) >>> 0;
+  }
+  return (hash % 10000) / 9999;
 }
 
 function dominantLeader(scenarios) {

@@ -271,12 +271,51 @@ function normalizeReferenceScenarios(rawScenarios) {
   return rawScenarios.map((entry, index) => {
     const seatsByParty = entry.seats ?? {};
 
-    const voteLikeShares = PARTY_ORDER.map((party) => {
+    const scenarioId = Number(entry.id ?? index + 1);
+
+    const representedSeatShares = PARTY_ORDER.map((party) => {
       const seats = Number(seatsByParty[party] ?? 0);
-      const voteShare = TOTAL_SEATS > 0 ? (seats / TOTAL_SEATS) * 100 : 0;
       return {
         party,
-        voteShare,
+        seats,
+        seatShare: TOTAL_SEATS > 0 ? (seats / TOTAL_SEATS) * 100 : 0,
+      };
+    });
+
+    const belowThresholdEstimates = new Map(
+      representedSeatShares
+        .filter((entryShare) => entryShare.seats <= 0)
+        .map((entryShare) => [
+          entryShare.party,
+          estimateBelowThresholdVoteShare(entryShare.party, scenarioId),
+        ]),
+    );
+
+    const representedSeatTotal = d3.sum(
+      representedSeatShares.filter((entryShare) => entryShare.seats > 0),
+      (entryShare) => entryShare.seatShare,
+    );
+
+    const estimatedBelowTotal = d3.sum(
+      [...belowThresholdEstimates.values()],
+      (value) => value,
+    );
+
+    const representedTarget = Math.max(0, 100 - estimatedBelowTotal);
+    const representedScale =
+      representedSeatTotal > 0 ? representedTarget / representedSeatTotal : 1;
+
+    const voteLikeShares = representedSeatShares.map((entryShare) => {
+      if (entryShare.seats <= 0) {
+        return {
+          party: entryShare.party,
+          voteShare: belowThresholdEstimates.get(entryShare.party) ?? 0,
+        };
+      }
+
+      return {
+        party: entryShare.party,
+        voteShare: entryShare.seatShare * representedScale,
       };
     });
 
@@ -307,7 +346,7 @@ function normalizeReferenceScenarios(rawScenarios) {
     );
 
     return {
-      id: Number(entry.id ?? index + 1),
+      id: scenarioId,
       votes: voteLikeShares,
       seatShares,
       firstParty: first.party,
@@ -317,6 +356,36 @@ function normalizeReferenceScenarios(rawScenarios) {
       threshold,
     };
   });
+}
+
+function estimateBelowThresholdVoteShare(party, scenarioId) {
+  const partyStats = state.parties.find((entry) => entry.key === party);
+  if (!partyStats) {
+    return 0;
+  }
+
+  const fallback = Number(partyStats.avg ?? 0);
+  const lowerRaw = Number(partyStats.ciLower ?? fallback);
+  const upperRaw = Number(partyStats.ciUpper ?? fallback);
+
+  const lower = Math.max(0, Math.min(4.9, lowerRaw));
+  const upper = Math.max(lower, Math.min(4.9, upperRaw));
+
+  if (upper <= lower) {
+    return lower;
+  }
+
+  const mix = deterministicUnitValue(`${party}-${scenarioId}`);
+  return lower + (upper - lower) * mix;
+}
+
+function deterministicUnitValue(seed) {
+  let hash = 0;
+  const source = String(seed);
+  for (let index = 0; index < source.length; index += 1) {
+    hash = (hash * 31 + source.charCodeAt(index)) >>> 0;
+  }
+  return (hash % 10000) / 9999;
 }
 
 function dominantLeader(scenarios) {
@@ -415,6 +484,12 @@ function coalitionSurplus(scenario, parties) {
   const seats = coalitionSeatTotal(scenario, parties);
   const majoritySeats = Math.floor(TOTAL_SEATS / 2) + 1;
   return ((seats - majoritySeats) / TOTAL_SEATS) * 100;
+}
+
+function coalitionSeatDeltaToMajority(scenario, parties) {
+  const seats = coalitionSeatTotal(scenario, parties);
+  const majoritySeats = Math.floor(TOTAL_SEATS / 2) + 1;
+  return seats - majoritySeats;
 }
 
 function coalitionSeatTotal(scenario, parties) {
@@ -534,7 +609,7 @@ function task1View() {
 
   const others = state.scenarios
     .filter((scenario) => scenario.firstParty !== selected)
-    .sort((a, b) => b.leadMargin - a.leadMargin);
+    .sort((a, b) => a.leadMargin - b.leadMargin);
 
   const narrative = state.variants.entryNarrative ?? "standard";
   const ordered =
@@ -592,10 +667,15 @@ function task1View() {
       ordered,
       highlight: (d) => d.firstParty === selected,
       cardText: (d) => {
-        if (isClarifiedNumericUnits()) {
-          return `${partyName(d.firstParty)}: Vorsprung +${d.leadMargin.toFixed(1)} Prozentpunkte`;
+        if (d.firstParty !== selected) {
+          return isClarifiedNumericUnits()
+            ? `${d.leadMargin.toFixed(1)} Prozentpunkte Abstand zur Führung`
+            : `${d.leadMargin.toFixed(1)} Pkt. Abstand zur Führung`;
         }
-        return `${partyName(d.firstParty)} +${d.leadMargin.toFixed(1)} Pkt.`;
+        if (isClarifiedNumericUnits()) {
+          return `+${d.leadMargin.toFixed(1)} Prozentpunkte Vorsprung`;
+        }
+        return `+${d.leadMargin.toFixed(1)} Pkt. Vorsprung`;
       },
       dataMetric: "vote",
       segmentOrder: (scenario) =>
@@ -619,6 +699,7 @@ function task1View() {
         }
         return "Knappes Rennen";
       },
+      customBandOrder: ["Klare Führung", "Knappes Rennen", "Sonstige"],
       customBandSort: (a, b) =>
         (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
         (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
@@ -632,10 +713,15 @@ function task1View() {
     ordered,
     highlight: (d) => d.firstParty === selected,
     cardText: (d) => {
-      if (isClarifiedNumericUnits()) {
-        return `${partyName(d.firstParty)}: Vorsprung +${d.leadMargin.toFixed(1)} Prozentpunkte`;
+      if (d.firstParty !== selected) {
+        return isClarifiedNumericUnits()
+          ? `${d.leadMargin.toFixed(1)} Prozentpunkte Abstand zur Führung`
+          : `${d.leadMargin.toFixed(1)} Pkt. Abstand zur Führung`;
       }
-      return `${partyName(d.firstParty)} +${d.leadMargin.toFixed(1)} Pkt.`;
+      if (isClarifiedNumericUnits()) {
+        return `+${d.leadMargin.toFixed(1)} Prozentpunkte Vorsprung`;
+      }
+      return `+${d.leadMargin.toFixed(1)} Pkt. Vorsprung`;
     },
     dataMetric: "vote",
     segmentOrder: (scenario) =>
@@ -658,6 +744,7 @@ function task1View() {
       }
       return "Knappes Rennen";
     },
+    customBandOrder: ["Klare Führung", "Knappes Rennen", "Sonstige"],
     customBandSort: (a, b) =>
       (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
       (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
@@ -690,6 +777,9 @@ function task2bView() {
     }
     return aShare - 5 - (bShare - 5);
   });
+  const groupedOrder = new Map(
+    ordered.map((scenario, orderedIndex) => [scenario.id, orderedIndex]),
+  );
 
   const belowCount = ordered.filter((d) =>
     isBelowThreshold(d, selected),
@@ -741,13 +831,15 @@ function task2bView() {
       ordered,
       highlight: (d) => isBelowThreshold(d, selected),
       cardText: (d) => {
-        if (!isClarifiedNumericUnits()) {
-          return `${partyName(selected)}: ${shareOf(d, selected).toFixed(1)}%`;
+        const thresholdDistance = Math.abs(5 - shareOf(d, selected));
+        if (isBelowThreshold(d, selected)) {
+          return isClarifiedNumericUnits()
+            ? `${thresholdDistance.toFixed(1)} Prozentpunkte unterhalb 5%-Hürde`
+            : `${thresholdDistance.toFixed(1)} Pkt. unterhalb 5%-Hürde`;
         }
-        const distanceToThreshold = isBelowThreshold(d, selected)
-          ? -Math.abs(5 - shareOf(d, selected))
-          : Math.abs(shareOf(d, selected) - 5);
-        return `${partyName(selected)}: ${formatThresholdDistanceCard(distanceToThreshold)}`;
+        return isClarifiedNumericUnits()
+          ? `${thresholdDistance.toFixed(1)} Prozentpunkte oberhalb 5%-Hürde`
+          : `${thresholdDistance.toFixed(1)} Pkt. oberhalb 5%-Hürde`;
       },
       dataMetric: "vote",
       thresholdParty: selected,
@@ -762,6 +854,20 @@ function task2bView() {
       },
       controlLabel:
         "Welche Partei könnte ebenfalls den Einzug in den Bundestag verpassen?",
+      customBandTitle: (scenario) => {
+        const thresholdDistance = 5 - shareOf(scenario, selected);
+        if (thresholdDistance >= 2) {
+          return "Klares Scheitern";
+        }
+        if (thresholdDistance > 0) {
+          return "Knappes Rennen";
+        }
+        return "Sonstige";
+      },
+      customBandOrder: ["Klares Scheitern", "Knappes Rennen", "Sonstige"],
+      customBandSort: (a, b) =>
+        (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+        (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
     };
   }
 
@@ -772,13 +878,15 @@ function task2bView() {
     ordered,
     highlight: (d) => isBelowThreshold(d, selected),
     cardText: (d) => {
-      if (!isClarifiedNumericUnits()) {
-        return `${partyName(selected)}: ${shareOf(d, selected).toFixed(1)}%`;
+      const thresholdDistance = Math.abs(5 - shareOf(d, selected));
+      if (isBelowThreshold(d, selected)) {
+        return isClarifiedNumericUnits()
+          ? `${thresholdDistance.toFixed(1)} Prozentpunkte unterhalb 5%-Hürde`
+          : `${thresholdDistance.toFixed(1)} Pkt. unterhalb 5%-Hürde`;
       }
-      const distanceToThreshold = isBelowThreshold(d, selected)
-        ? -Math.abs(5 - shareOf(d, selected))
-        : Math.abs(shareOf(d, selected) - 5);
-      return `${partyName(selected)}: ${formatThresholdDistanceCard(distanceToThreshold)}`;
+      return isClarifiedNumericUnits()
+        ? `${thresholdDistance.toFixed(1)} Prozentpunkte oberhalb 5%-Hürde`
+        : `${thresholdDistance.toFixed(1)} Pkt. oberhalb 5%-Hürde`;
     },
     dataMetric: "vote",
     thresholdParty: selected,
@@ -791,6 +899,20 @@ function task2bView() {
       options: thresholdRelevantParties(state.scenarios),
       selected,
     },
+    customBandTitle: (scenario) => {
+      const thresholdDistance = 5 - shareOf(scenario, selected);
+      if (thresholdDistance >= 2) {
+        return "Klares Scheitern";
+      }
+      if (thresholdDistance > 0) {
+        return "Knappes Rennen";
+      }
+      return "Sonstige";
+    },
+    customBandOrder: ["Klares Scheitern", "Knappes Rennen", "Sonstige"],
+    customBandSort: (a, b) =>
+      (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+      (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
   };
 }
 
@@ -896,12 +1018,14 @@ function task3View() {
       ordered,
       highlight: (d) => coalitionMajority(d, coalition.parties),
       cardText: (d) => {
-        const value = coalitionSurplus(d, coalition.parties);
-        if (isClarifiedNumericUnits()) {
-          return formatMajorityDistanceCard(value);
+        const seatDelta = coalitionSeatDeltaToMajority(d, coalition.parties);
+        if (seatDelta >= 0) {
+          const seatLabel = seatDelta === 1 ? "Sitz" : "Sitze";
+          return `${seatDelta} ${seatLabel} über der absoluten Mehrheit`;
         }
-        const label = value >= 0 ? "Mehrheit" : "Fehlt";
-        return `${label}: ${Math.abs(value).toFixed(1)} Sitz-%`;
+        const missingSeats = Math.abs(seatDelta);
+        const seatLabel = missingSeats === 1 ? "Sitz" : "Sitze";
+        return `${missingSeats} ${seatLabel} unter der absoluten Mehrheit`;
       },
       dataMetric: "seat",
       coalitionParties: coalition.parties,
@@ -915,6 +1039,23 @@ function task3View() {
         selected: coalition.id,
       },
       controlLabel: "Welche Koalition soll im Mehrheitscheck stehen?",
+      customBandTitle: (scenario) => {
+        const seatDelta = coalitionSeatDeltaToMajority(
+          scenario,
+          coalition.parties,
+        );
+        if (seatDelta >= 6) {
+          return "Klare Mehrheit";
+        }
+        if (seatDelta >= 0) {
+          return "Knappe Mehrheit";
+        }
+        return "Sonstige";
+      },
+      customBandOrder: ["Klare Mehrheit", "Knappe Mehrheit", "Sonstige"],
+      customBandSort: (a, b) =>
+        coalitionSeatDeltaToMajority(b, coalition.parties) -
+        coalitionSeatDeltaToMajority(a, coalition.parties),
     };
   }
 
@@ -925,12 +1066,14 @@ function task3View() {
     ordered,
     highlight: (d) => coalitionMajority(d, coalition.parties),
     cardText: (d) => {
-      const value = coalitionSurplus(d, coalition.parties);
-      if (isClarifiedNumericUnits()) {
-        return formatMajorityDistanceCard(value);
+      const seatDelta = coalitionSeatDeltaToMajority(d, coalition.parties);
+      if (seatDelta >= 0) {
+        const seatLabel = seatDelta === 1 ? "Sitz" : "Sitze";
+        return `${seatDelta} ${seatLabel} über der absoluten Mehrheit`;
       }
-      const label = value >= 0 ? "Mehrheit" : "Fehlt";
-      return `${label}: ${Math.abs(value).toFixed(1)} Sitz-%`;
+      const missingSeats = Math.abs(seatDelta);
+      const seatLabel = missingSeats === 1 ? "Sitz" : "Sitze";
+      return `${missingSeats} ${seatLabel} unter der absoluten Mehrheit`;
     },
     dataMetric: "seat",
     coalitionParties: coalition.parties,
@@ -943,6 +1086,23 @@ function task3View() {
       options: state.coalitionOptions.map((d) => d.id),
       selected: coalition.id,
     },
+    customBandTitle: (scenario) => {
+      const seatDelta = coalitionSeatDeltaToMajority(
+        scenario,
+        coalition.parties,
+      );
+      if (seatDelta >= 6) {
+        return "Klare Mehrheit";
+      }
+      if (seatDelta >= 0) {
+        return "Knappe Mehrheit";
+      }
+      return "Sonstige";
+    },
+    customBandOrder: ["Klare Mehrheit", "Knappe Mehrheit", "Sonstige"],
+    customBandSort: (a, b) =>
+      coalitionSeatDeltaToMajority(b, coalition.parties) -
+      coalitionSeatDeltaToMajority(a, coalition.parties),
   };
 }
 
@@ -1629,7 +1789,11 @@ function buildGroupedBands(rankedCards, view, titlePrefix) {
     const grouped = d3.group(rankedCards, (entry) =>
       view.customBandTitle(entry.scenario),
     );
-    const order = ["Klare Führung", "Knappes Rennen", "Sonstige"];
+    const order = view.customBandOrder ?? [
+      "Klare Führung",
+      "Knappes Rennen",
+      "Sonstige",
+    ];
 
     return order
       .map((label) => {

@@ -5,6 +5,110 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.42] - 2026-02-28
+
+### Added
+
+- `src/main-test.js`: Neue Innovationsoption `D – Merge von A und C` im Panel `Innovation & Interaktion` ergänzt.
+
+### Changed
+
+- `src/main-test.js`: Variante D kombiniert den Cluster-Überblick mit sichtbarer Reorganisation der Karten beim Perspektivwechsel (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?`) via Transition.
+- `src/main-test.js`: Cluster-Rendering so erweitert, dass Positionsspeicher für Szenariokarten zwischen Perspektiven genutzt wird, ohne numerische Logik oder Schwellenwerte zu ändern.
+- `index-test.html`: Innovationspanel-Beschreibung auf `Standard, A, B, C und D` aktualisiert.
+
+## [0.4.41] - 2026-02-28
+
+### Changed
+
+- `src/main-test.js`: In `Innovation & Interaktion` Variante `C – Cluster-Überblick` den zusätzlichen Summary-Satz entfernt, damit die Variante ausschließlich Interaktions- und Strukturverhalten ändert und keine Textänderung auslöst.
+
+## [0.4.40] - 2026-02-28
+
+### Added
+
+- `src/main-test.js`: Neues Innovationsmuster `C – Cluster-Überblick` im Testpanel `Innovation & Interaktion` ergänzt.
+
+### Changed
+
+- `src/main-test.js`: Für Variante C ein clusterbasiertes Explorationsmodell umgesetzt: Kategorien als eigene Blöcke mit `X von Y`-Einordnung, Verteilungsindikator und kuratierter Vorschau (`8` Karten) mit Inline-Aufklappen über `Weitere Szenarien anzeigen`.
+- `src/main-test.js`: Summary-Hinweis ergänzt, dass zunächst kuratierte Ausschnitte gezeigt werden und alle Szenarien per Interaktion erreichbar bleiben.
+- `index-test.html`: Styles für die neue Cluster-Darstellung ergänzt; bestehende Testpanel-Beschreibung auf `Standard, A, B und C` aktualisiert.
+
+## [0.4.39] - 2026-02-28
+
+### Changed
+
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: `Wer führt?` – Sortierung in `Sonstige` auf aufsteigenden Abstand zur Führung umgestellt (von knapp zu deutlich) und Kartenwortlaut für diese Gruppe auf `x Prozentpunkte Abstand zur Führung` geändert.
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: `Welche Mehrheiten?` – Sortierung in `Klare Mehrheit` und `Knappe Mehrheit` auf größten Sitzüberschuss zuerst umgestellt; `Sonstige` bleibt von knapp unter Mehrheit zu deutlich darunter sortiert.
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: Grammatik in Mehrheitskarten korrigiert (`1 Sitz` statt `1 Sitze`).
+
+## [0.4.38] - 2026-02-28
+
+### Changed
+
+- `src/main-test.js`: `Wer führt?` – Sortierung in `Sonstige` auf aufsteigenden Abstand zur Führung umgestellt (von knapp zu deutlich) und Kartenwortlaut für diese Gruppe auf `x Prozentpunkte Abstand zur Führung` geändert.
+- `src/main-test.js`: `Welche Mehrheiten?` – Sortierung in `Klare Mehrheit` und `Knappe Mehrheit` auf größten Sitzüberschuss zuerst umgestellt; `Sonstige` bleibt von knapp unter Mehrheit zu deutlich darunter sortiert.
+- `src/main-test.js`: Grammatik in Mehrheitskarten korrigiert (`1 Sitz` statt `1 Sitze`).
+
+## [0.4.37] - 2026-02-28
+
+### Changed
+
+- `src/main-test.js`: In `Innovation & Interaktion` Variante `B – Kapitel-Scroll-Fokus` startet die Ansicht ohne initiale Kapitel-Dimmung; die Hervorhebung (`chapter-active`/`chapter-passive`) greift erst nach dem ersten echten Scroll-Event.
+- `src/main-test.js`: Zusätzlicher Summary-Satz für Variante B entfernt, damit die Variantenwahl keine Textänderung im Summary auslöst.
+
+## [0.4.36] - 2026-02-28
+
+### Changed
+
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: Szenario-Kartentexte in `Wer führt?` auf kurze Form ohne Parteinamen umgestellt (`+x Prozentpunkte Vorsprung`).
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: Szenario-Kartentexte in `Wer riskiert 5%?` auf klare Distanzform zur Hürde ohne Parteinamen umgestellt (`x Prozentpunkte unterhalb/oberhalb 5%-Hürde`).
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: Szenario-Kartentexte in `Welche Mehrheiten?` auf Sitzabstand zur absoluten Mehrheit umgestellt (`x Sitze über/unter der absoluten Mehrheit`).
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: Bandgruppierung für `Wer riskiert 5%?` redaktionell kategorisiert (`Klares Scheitern`, `Knappes Rennen`, `Sonstige`).
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: Bandgruppierung für `Welche Mehrheiten?` redaktionell kategorisiert (`Klare Mehrheit`, `Knappe Mehrheit`, `Sonstige`).
+- `src/main-stable-v2.js`, `src/main-stable-v3.js`: `buildGroupedBands` erweitert, sodass pro View eine explizite Band-Reihenfolge (`customBandOrder`) genutzt werden kann.
+
+## [0.4.35] - 2026-02-28
+
+### Changed
+
+- `src/main-test.js`: Szenario-Kartentexte in `Wer führt?` auf kurze Form ohne Parteinamen umgestellt (`+x Prozentpunkte Vorsprung`).
+- `src/main-test.js`: Szenario-Kartentexte in `Wer riskiert 5%?` auf klare Distanzform zur Hürde ohne Parteinamen umgestellt (`x Prozentpunkte unterhalb/oberhalb 5%-Hürde`).
+- `src/main-test.js`: Szenario-Kartentexte in `Welche Mehrheiten?` auf Sitzabstand zur absoluten Mehrheit umgestellt (`x Sitze über/unter der absoluten Mehrheit`).
+- `src/main-test.js`: Bandgruppierung für `Wer riskiert 5%?` redaktionell kategorisiert (`Klares Scheitern`, `Knappes Rennen`, `Sonstige`) statt generischem Fokuslabel.
+- `src/main-test.js`: Bandgruppierung für `Welche Mehrheiten?` redaktionell kategorisiert (`Klare Mehrheit`, `Knappe Mehrheit`, `Sonstige`) statt generischem Fokuslabel.
+- `src/main-test.js`: `buildGroupedBands` erweitert, sodass pro View eine explizite Band-Reihenfolge (`customBandOrder`) genutzt werden kann.
+
+## [0.4.34] - 2026-02-28
+
+### Fixed
+
+- `src/main-test.js`, `src/main-stable.js`, `src/main-stable-v2.js`, `src/main-stable-v3.js`: Korrektur der Stimmenrekonstruktion aus Referenzszenarien für Parteien ohne Sitze (insb. FDP/BSW) in der 5%-Hürden-Perspektive.
+- Unter-5%-Parteien werden für die Stimmenanzeige nicht mehr pauschal als `0%` dargestellt, sondern deterministisch aus den vorhandenen CI-Grenzen (`ci_lower`/`ci_upper`) der autoritativen Datengrundlage abgeleitet.
+- Sitzverteilung, Mehrheitslogik und Koalitionsberechnungen bleiben unverändert auf Basis der Referenzsitze.
+
+## [0.4.33] - 2026-02-28
+
+### Fixed
+
+- `src/main-stable-v2.js`: Inhalt auf den Stable-Stand aus Commit `e500d39` (`Version 2.1.1 - Verständnis & Korrektheit, Style Transfer, inkl. Nachjustierung`) korrigiert.
+- `index-stable-v2.html`: Inhalt auf denselben Commit-Stand korrigiert und Script-Referenz auf `./src/main-stable-v2.js` gesetzt, damit die v2-Version eigenständig lauffähig bleibt.
+
+## [0.4.32] - 2026-02-28
+
+### Added
+
+- `index-test.html`: Neues separates Innovations-Testpanel innerhalb des Test-Variantensystems ergänzt (`Innovations-Testpanel`) mit eigener Ausgabezone `#innovation-variant-group`.
+- `src/main-test.js`: Neue Innovations-Variantengruppe `Innovation & Interaktion` mit den Optionen `Standard`, `A – Kontinuitäts-Resortierung` und `B – Kapitel-Scroll-Fokus` ergänzt.
+
+### Changed
+
+- `src/main-test.js`: Konzept A umgesetzt: bandbasierte Szenario-Karten ordnen sich bei Perspektivwechseln mit weicher Positions-Transition neu; Fokus- und Restgruppen werden kontextuell abgestuft dargestellt.
+- `src/main-test.js`: Konzept B umgesetzt: scrollbasierte Kapitel-Betonung für Bandgruppen ergänzt (aktive Gruppe hervorgehoben, übrige Gruppen gedimmt).
+- `src/main-test.js`: Summary-Feedback ergänzt, damit aktive Innovationslogik in verständlicher, journalistischer Sprache sichtbar ist.
+- `index-test.html`: Styles für beide Innovationsmodi ergänzt (sanfte Fokusabstufung und Kapitel-Scroll-Hervorhebung), ohne Änderungen an Stable-Dateien.
+
 ## [0.4.31] - 2026-02-28
 
 ### Added
