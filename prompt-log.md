@@ -2976,23 +2976,180 @@ Definition of Done:
 
 ---
 
-### 59. D-Variante: Merge von Kontinuität und Cluster-Überblick
+### 59. D-Variante: Cluster + Kontinuität inkl. 100/1000-Eintritt
 
 **Model:** GPT-5.3-Codex
 
 **Request:** Goal:
 I would like to test a combineation of "A-Kontinuitäts-Resorting" and "C-Cluster-Überblick"?
 
-- Add "D – Merge of A and C": Keep the clusters but if user changes to different view "Welche Mehrheiten? "Wer riskiert 5%?" there should be a viewable reorganisation of cards.
+- Add "D – Merge of A and C": Keep the clusters: "Klares Scheitern", "Knappes Rennen", "Klare Mehrheit etc. but if user changes to different view "Welche Mehrheiten? "Wer riskiert 5%?" etc there should be a viewable reorganisation of cards.
+- In D it should be also visible if I switch from 100 to 1000 Scenarios (mor scenarios are entering the visualisation)
 
 **Action:**
 
-- ✅ `src/main-test.js`: Neue Innovationsoption `D – Merge von A und C` ergänzt.
-- ✅ `src/main-test.js`: D so umgesetzt, dass Cluster-Struktur aus C erhalten bleibt und beim Perspektivwechsel eine sichtbare Karten-Reorganisation via Transition erfolgt.
-- ✅ `src/main-test.js`: Positionsspeicher für Clusterkarten ergänzt, damit Bewegungen beim Wechsel zwischen Perspektiven nachvollziehbar sichtbar sind.
-- ✅ `index-test.html`: Panelbeschreibung auf `Standard, A, B, C und D` aktualisiert.
-- ✅ `changelog.md`: Version `0.4.42` ergänzt.
+- ✅ `src/main-test.js`: Neue Option `D – Merge von A und C` in `Innovation & Interaktion` ergänzt.
+- ✅ `src/main-test.js`: D kombiniert Cluster-Überblick mit sichtbarer Reorganisation der Karten bei Perspektivwechsel (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?`).
+- ✅ `src/main-test.js`: Persistente, key-basierte Cluster-Joins umgesetzt, damit Übergänge nicht hart neu gezeichnet werden.
+- ✅ `src/main-test.js`: Bei `100` ↔ `1000` in D erscheinen zusätzliche Karten sichtbar per Eintritts-Transition.
+- ✅ `index-test.html`: Paneltext auf `Standard, A, B, C und D` aktualisiert.
+- ✅ `changelog.md`: Version `0.4.43` ergänzt.
 - ✅ Stable/Test-Separation eingehalten: keine Änderungen an `index-stable*.html` oder `src/main-stable*.js`.
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 60. Style Transfer Workflow gestartet (Pre-Step Inventar & Delta)
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Follow instructions in [Style Transfer.prompt.md](file:///Users/felina/Documents/Master%20HAW/Masterarbeit/visualisierung-projekt2/.github/prompts/Style%20Transfer.prompt.md).
+
+**Action:**
+
+- ✅ Pre-Step 0.1 gestartet: `index-test.html`, `src/main-test.js`, `index-stable.html`, `src/main-stable.js` auf Variant-Panels, Radio-Logik und aktuelle Stable-Konfiguration geprüft.
+- ✅ Test-Panel-Inventar vollständig erfasst (Innovation + alle 12 Variant-Gruppen).
+- ✅ Stable-vs-Start-Delta vorbereitet: Zuordnung der aktuellen Stable-Ausprägungen auf die Test-Optionen panelweise abgeleitet.
+- ⏸️ Nächster Schritt (offen): Chat-basierte Radio-Auswahl durch Nutzer:in gemäß Checkliste; danach erst Mapping-Plan (Step 1, ohne Codeänderungen).
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 61. Style Transfer – Nutzerauswahl der Zielkonfiguration
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Innovation & Interaktion
+
+( ) Standard — Unveränderte Baseline aus Start.
+( ) A – Kontinuitäts-Resortierung — Sanfte Umordnung mit Fokuswechsel statt harter Sprünge.
+( ) B – Kapitel-Scroll-Fokus — Beim Scrollen wird die aktuell relevante Gruppe klar betont.
+( ) C – Cluster-Überblick — Kategorieblöcke mit kuratierter Vorschau und Aufklappen bei Bedarf.
+(•) D – Merge von A und C — Cluster mit sichtbarer Reorganisation bei Perspektivwechsel.
+Einstieg & Erzählrichtung
+
+( ) Standard — Unveränderte Baseline aus Start.
+( ) A – Mehrheits-Start — Einstieg bei Mehrheiten, Fokus auf knappe Regierungsfähigkeit.
+( ) B – Risiko-Start — Einstieg bei 5%-Hürde, Fokus auf Kippmomente.
+(•) C – Führungs-Spannung — Einstieg bei Führung, knappe Führungen zuerst.
+Layoutstruktur
+
+( ) Standard — Feste Rasterstruktur wie in Start.
+(•) Adaptives Raster — Spaltenzahl passt sich der Breite an.
+Steuerbereich-Struktur
+
+( ) Standard — Perspektive und Auswahl in linearer Folge.
+(•) Perspektive + Fokusblock — Fokusauswahl direkt zur Perspektive, Szenarien nachgeordnet.
+( ) Geteilte Steuerfläche — Navigation links, Auswahlblock rechts mit klarer Hierarchie.
+Häufigkeitsanordnung
+
+(•) Standard — Sortierung folgt der gewählten Perspektive.
+( ) Häufigkeit: Zentrum — Häufige Sitzbilder im Zentrum, seltene klar im Außenbereich.
+( ) Häufigkeit: Zonen — Häufige Sitzbilder zuerst, seltene klar am Randbereich.
+Gruppendarstellung
+
+( ) Standard — Ein durchgehendes Szenariofeld.
+(•) Segmentierte Bänder — Fokusgruppe und übrige Szenarien werden getrennt gezeigt.
+Mikrochart-Darstellung
+
+(•) Standard — Horizontale Balken wie in Start.
+( ) Kompakte Icons — Kreisförmige Icons, optimiert für dichte Layouts.
+( ) Nur Kreis-Marker — Ohne Kartenrahmen: nur kompakte Marker für dichte Kreislayouts.
+Typografie & Farbklima
+
+( ) Standard — Start-Basis für Schriftbild und Grundfarben.
+(•) Redaktionell Serif — Serifenbetont, ruhiger Lesefluss mit weicherem Hintergrund.
+( ) Redaktionell Sans — Klarer Sans-Stil mit präziser Gewichtung und höherem Kontrast.
+Hover-Verhalten
+
+( ) Standard — Bestehendes Tooltip-Verhalten wie in der bisherigen Testansicht.
+(•) Hover + Tooltip — Tooltip plus zusätzliche visuelle Hervorhebung.
+Redaktionelle Sprache
+
+( ) Standard — Technische Formulierungen wie in Start.
+( ) Journalistisch optimiert — Interpretative Sprache, journalistische Formulierungen.
+(•) Journalistisch optimiert – klarerer narrativer Flow — Lead mit Kernaussage, abgestufte Text-Hierarchie ohne Redundanzen.
+Erklärungstiefe
+
+( ) Standard — Minimale Erklärungen wie in Start.
+(•) Erweiterte Transparenz — Sortierlogik, Coalition Pool und Filter-Kontext erklärt.
+Schwellenwert-Visualisierung
+
+( ) Standard — Schwellenwerte nur im Text erwähnt.
+(•) Mit visuellen Markern — 5%-Hürde und 50%-Mehrheit visuell in Mikrocharts markiert.
+Wording in Szenario-Karten
+
+( ) Standard — Kurzform wie in Start (z. B. Pkt., Sitz-%).
+(•) Journalistische Klarsprache — Eindeutige Begriffe in allen Perspektiven (z. B. Prozentpunkte).
+
+**Action:**
+
+- ✅ Nutzerauswahl als verbindliche Zielkonfiguration für den Style-Transfer übernommen.
+- ✅ Step 1 gestartet (nur Mapping, keine Codeänderungen): Zuordnung der gewählten Optionen zu Test-Codepfaden und Stable-Hardcoding vorbereitet.
+- ⏸️ Nächster Schritt (offen): Mapping-Plan zur Freigabe vor Implementierung.
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 62. Style Transfer – Step 2 Implementierung freigegeben
+
+**Model:** GPT-5.3-Codex
+
+**Request:** yes
+
+**Action:**
+
+- ✅ `src/main-stable.js`: Gewählte Zielkonfiguration als cleanes Stable-Preset umgesetzt; Landschaft fest auf `D – Merge von A und C` gestellt (Cluster + sichtbare Reorganisation), ohne Variant-UI.
+- ✅ `src/main-stable.js`: Cluster-Kontinuitätslogik aus Test in Stable übertragen (`renderClusteredLandscape`, Memory-Keying, Positions-Transitionen, kuratierte Vorschau mit Expand/Collapse).
+- ✅ `src/main-stable.js`: Test-only Panel-Logik nicht übertragen; Trennung Test/Stable gewahrt.
+- ✅ `changelog.md`: Neuer PATCH-Eintrag `0.4.45` ergänzt.
+- ⏸️ Nächster Schritt: Fehlerprüfung auf geänderten Dateien, Abschluss-Checks und DoD-Bestätigung.
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 63. Stable Clustering-Fix nach Transfer-Feedback
+
+**Model:** GPT-5.3-Codex
+
+**Request:** No Transfer did not work completly right: In "Wer riskiert 5% and "Welche Mehrheiten" there is the wrong clustering ("im Fokus" instead of "Klare Mehrheit" etc.) - please adapt new clustering on every selection = differs in "Wer führt?", "Wer riskiert 5%" and "Welche Mehrheiten"
+-> the transfer should be 1:1 relating to selected options in index-test.html/main-test.js
+
+**Action:**
+
+- ✅ `src/main-stable.js`: Perspektivspezifisches Clustering auf Test-Äquivalenz korrigiert (`task2bView`/`task3View` inkl. `customBandTitle`, `customBandOrder`, `customBandSort`).
+- ✅ `src/main-stable.js`: `buildGroupedBands()` auf `view.customBandOrder` umgestellt, damit jede Perspektive ihre definierte Cluster-Reihenfolge nutzt statt generischem Fallback.
+- ✅ `src/main-stable.js`: `coalitionSeatDeltaToMajority()` ergänzt, um Mehrheits-Cluster in Stable identisch zur Test-Logik zu klassifizieren.
+- ✅ `changelog.md`: Neuer PATCH-Eintrag `0.4.46` ergänzt.
+- ⏸️ Nächster Schritt: Fehlerprüfung und Abschluss-Validierung.
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
+### 64. Szenario-Steuerung: Dropdown zu kompaktem Toggle
+
+**Model:** GPT-5.3-Codex
+
+**Request:** Problem:
+"Szenarien" Button has too much white space and is not intuitive.
+
+Goal:
+
+- Change Szenario Button/Dropdown layoutwise: No Button and Dropdown but only small writing above the box
+- e.g. replace Dropdown to "In 100 Szenarien" and clickable arrow up
+  -> after click "In 1000 Szenarien" and clickable arrow down
+
+**Action:**
+
+- ✅ `src/main-stable.js`, `src/main-test.js`: Szenario-Dropdown durch kompakten Toggle ersetzt (`In 100 Szenarien ↑` ↔ `In 1000 Szenarien ↓`) mit direktem Klickwechsel.
+- ✅ `index-stable.html`, `index-test.html`: Steuerfeld visuell verdichtet (kleines Label über der Toggle-Box, weniger Weißraum, gleiche Layoutlogik).
+- ✅ `changelog.md`: Neuer PATCH-Eintrag `0.4.47` ergänzt.
+- ⏸️ Nächster Schritt: Fehlerprüfung und Abschlussvalidierung.
 
 **Status:** ⏸ Pending Approval (accept/reject)
 

@@ -37,6 +37,8 @@ const LAYOUT_TOKENS = {
 
 const LEAD_MARGIN_CLOSE_MIN = 0.1;
 const LEAD_MARGIN_CLEAR_MIN = 1.0;
+const CURATED_PREVIEW_LIMIT = 8;
+const STABLE_LANDSCAPE_PRESET = "concept-d";
 
 const state = {
   task: "task1",
@@ -65,6 +67,9 @@ const state = {
     numericalUnits: "clarified",
   },
 };
+
+let clusterExpansionMemory = new Map();
+let clusterPositionMemory = new Map();
 
 init();
 
@@ -486,6 +491,12 @@ function coalitionSurplus(scenario, parties) {
   return ((seats - majoritySeats) / TOTAL_SEATS) * 100;
 }
 
+function coalitionSeatDeltaToMajority(scenario, parties) {
+  const seats = coalitionSeatTotal(scenario, parties);
+  const majoritySeats = Math.floor(TOTAL_SEATS / 2) + 1;
+  return seats - majoritySeats;
+}
+
 function coalitionSeatTotal(scenario, parties) {
   return d3.sum(
     scenario.seatShares.filter((entry) => parties.includes(entry.party)),
@@ -688,6 +699,7 @@ function task1View() {
         }
         return "Knappes Rennen";
       },
+      customBandOrder: ["Klare Führung", "Knappes Rennen", "Sonstige"],
       customBandSort: (a, b) =>
         (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
         (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
@@ -727,6 +739,7 @@ function task1View() {
       }
       return "Knappes Rennen";
     },
+    customBandOrder: ["Klare Führung", "Knappes Rennen", "Sonstige"],
     customBandSort: (a, b) =>
       (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
       (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
@@ -759,6 +772,10 @@ function task2bView() {
     }
     return aShare - 5 - (bShare - 5);
   });
+
+  const groupedOrder = new Map(
+    ordered.map((scenario, orderedIndex) => [scenario.id, orderedIndex]),
+  );
 
   const belowCount = ordered.filter((d) =>
     isBelowThreshold(d, selected),
@@ -831,6 +848,20 @@ function task2bView() {
       },
       controlLabel:
         "Welche Partei könnte ebenfalls den Einzug in den Bundestag verpassen?",
+      customBandTitle: (scenario) => {
+        const thresholdDistance = 5 - shareOf(scenario, selected);
+        if (thresholdDistance >= 2) {
+          return "Klares Scheitern";
+        }
+        if (thresholdDistance > 0) {
+          return "Knappes Rennen";
+        }
+        return "Sonstige";
+      },
+      customBandOrder: ["Klares Scheitern", "Knappes Rennen", "Sonstige"],
+      customBandSort: (a, b) =>
+        (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+        (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
     };
   }
 
@@ -860,6 +891,20 @@ function task2bView() {
       options: thresholdRelevantParties(state.scenarios),
       selected,
     },
+    customBandTitle: (scenario) => {
+      const thresholdDistance = 5 - shareOf(scenario, selected);
+      if (thresholdDistance >= 2) {
+        return "Klares Scheitern";
+      }
+      if (thresholdDistance > 0) {
+        return "Knappes Rennen";
+      }
+      return "Sonstige";
+    },
+    customBandOrder: ["Klares Scheitern", "Knappes Rennen", "Sonstige"],
+    customBandSort: (a, b) =>
+      (groupedOrder.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+      (groupedOrder.get(b.id) ?? Number.MAX_SAFE_INTEGER),
   };
 }
 
@@ -984,6 +1029,23 @@ function task3View() {
         selected: coalition.id,
       },
       controlLabel: "Welche Koalition soll im Mehrheitscheck stehen?",
+      customBandTitle: (scenario) => {
+        const seatDelta = coalitionSeatDeltaToMajority(
+          scenario,
+          coalition.parties,
+        );
+        if (seatDelta >= 6) {
+          return "Klare Mehrheit";
+        }
+        if (seatDelta >= 0) {
+          return "Knappe Mehrheit";
+        }
+        return "Sonstige";
+      },
+      customBandOrder: ["Klare Mehrheit", "Knappe Mehrheit", "Sonstige"],
+      customBandSort: (a, b) =>
+        coalitionSeatDeltaToMajority(b, coalition.parties) -
+        coalitionSeatDeltaToMajority(a, coalition.parties),
     };
   }
 
@@ -1012,6 +1074,23 @@ function task3View() {
       options: state.coalitionOptions.map((d) => d.id),
       selected: coalition.id,
     },
+    customBandTitle: (scenario) => {
+      const seatDelta = coalitionSeatDeltaToMajority(
+        scenario,
+        coalition.parties,
+      );
+      if (seatDelta >= 6) {
+        return "Klare Mehrheit";
+      }
+      if (seatDelta >= 0) {
+        return "Knappe Mehrheit";
+      }
+      return "Sonstige";
+    },
+    customBandOrder: ["Klare Mehrheit", "Knappe Mehrheit", "Sonstige"],
+    customBandSort: (a, b) =>
+      coalitionSeatDeltaToMajority(b, coalition.parties) -
+      coalitionSeatDeltaToMajority(a, coalition.parties),
   };
 }
 
@@ -1024,7 +1103,7 @@ function renderSubControls(view) {
     {
       id: "scenario",
       fieldClass: "control-scenario",
-      label: "Szenarien:",
+      label: "Szenarien",
       options: SCENARIO_OPTIONS,
       selected: state.scenarioCount,
       text: (d) => `${d}`,
@@ -1098,13 +1177,35 @@ function renderSubControls(view) {
       .append("div")
       .attr("class", `control-field ${row.fieldClass}`);
 
-    field.append("label").text(row.label);
+    if (row.id !== "scenario") {
+      field.append("label").text(row.label);
+    }
 
     if (row.id === "context" && activeLayout !== "standard") {
       field
         .append("div")
         .attr("class", "control-context-subtitle")
         .text("Auswahl zur aktiven Perspektive");
+    }
+
+    if (row.id === "scenario") {
+      field
+        .append("button")
+        .attr("type", "button")
+        .attr("class", "scenario-toggle")
+        .attr("aria-label", "Szenariozahl wechseln")
+        .text(
+          `In ${state.scenarioCount} Szenarien ${state.scenarioCount === 100 ? "↑" : "↓"}`,
+        )
+        .on("click", () => {
+          const nextScenarioCount =
+            state.scenarioCount === SCENARIO_OPTIONS[0]
+              ? SCENARIO_OPTIONS[1]
+              : SCENARIO_OPTIONS[0];
+          row.onChange(nextScenarioCount);
+          render();
+        });
+      return;
     }
 
     const select = field.append("select");
@@ -1249,11 +1350,44 @@ function renderInlineFocusComplex(summary, view) {
 
 function renderLandscape(view) {
   const landscape = d3.select("#landscape");
-  landscape.html("");
+  const useClusterContinuityResort = STABLE_LANDSCAPE_PRESET === "concept-d";
+
+  if (!useClusterContinuityResort) {
+    landscape.html("");
+    clusterPositionMemory = new Map();
+  } else if (landscape.select("div.cluster-overview").empty()) {
+    landscape.html("");
+  }
+
+  landscape.classed("innovation-concept-c", useClusterContinuityResort);
 
   const columns = resolveColumns(landscape.node()?.clientWidth ?? 0);
   const ordered = resolveOrderedScenarios(view);
   const rankedCards = rankCards(ordered);
+
+  if (useClusterContinuityResort) {
+    const probabilityLayout = state.variants.probabilityLayout;
+    const bands =
+      probabilityLayout === "frequency-zones"
+        ? buildFrequencyBands(rankedCards, view)
+        : probabilityLayout === "frequency-center"
+          ? [
+              {
+                title: "Häufigkeit über alle Szenarien",
+                cards: rankedCards,
+              },
+            ]
+          : buildGroupedBands(rankedCards, view, null);
+
+    renderClusteredLandscape(
+      landscape,
+      bands,
+      columns,
+      view,
+      useClusterContinuityResort,
+    );
+    return;
+  }
 
   if (state.variants.probabilityLayout === "frequency-center") {
     renderFrequencyCenterLandscape(landscape, columns, view, rankedCards);
@@ -1269,6 +1403,259 @@ function renderLandscape(view) {
   const bands = buildGroupedBands(rankedCards, view, null);
 
   renderBandLandscape(landscape, bands, columns, view);
+}
+
+function renderClusteredLandscape(
+  landscape,
+  bands,
+  columns,
+  view,
+  useContinuity = false,
+) {
+  if (!useContinuity) {
+    landscape.html("");
+    clusterPositionMemory = new Map();
+  }
+
+  const totalCards = d3.sum(bands, (band) => band.cards.length);
+  const frame = getMicrochartFrame();
+  const chartWidth =
+    columns * frame.width +
+    (columns - 1) * LAYOUT_TOKENS.cardGap +
+    LAYOUT_TOKENS.framePadding * 2;
+
+  const preparedBands = bands.map((band, bandIndex) => ({
+    ...band,
+    bandIndex,
+    memoryKey: buildClusterMemoryKey(view, band, bandIndex),
+  }));
+
+  const wrapper = useContinuity
+    ? landscape
+        .selectAll("div.cluster-overview")
+        .data([null])
+        .join("div")
+        .attr("class", "cluster-overview")
+    : landscape.append("div").attr("class", "cluster-overview");
+
+  const sections = wrapper
+    .selectAll("section.cluster-band")
+    .data(preparedBands, (d) => d.memoryKey)
+    .join(
+      (enter) =>
+        enter
+          .append("section")
+          .attr("class", "cluster-band")
+          .style("opacity", useContinuity ? 0 : 1)
+          .style("transform", useContinuity ? "translateY(6px)" : "none")
+          .call((selection) => {
+            if (useContinuity) {
+              selection
+                .transition()
+                .duration(260)
+                .style("opacity", 1)
+                .style("transform", "translateY(0)");
+            }
+          }),
+      (update) => update,
+      (exit) =>
+        exit.call((selection) => {
+          if (useContinuity) {
+            selection
+              .transition()
+              .duration(220)
+              .style("opacity", 0)
+              .style("transform", "translateY(-4px)")
+              .remove();
+          } else {
+            selection.remove();
+          }
+        }),
+    )
+    .attr("class", "cluster-band");
+
+  sections.each(function renderClusterBand(band) {
+    const section = d3.select(this);
+
+    const expanded = clusterExpansionMemory.get(band.memoryKey) === true;
+    const visibleCount = expanded
+      ? band.cards.length
+      : Math.min(CURATED_PREVIEW_LIMIT, band.cards.length);
+
+    const percentage =
+      totalCards > 0 ? Math.round((band.cards.length / totalCards) * 100) : 0;
+
+    const head = section
+      .selectAll("div.cluster-band-header")
+      .data([band])
+      .join("div")
+      .attr("class", "cluster-band-header");
+
+    head
+      .selectAll("h3.cluster-band-title")
+      .data([band])
+      .join("h3")
+      .attr("class", "cluster-band-title")
+      .text(band.title ?? `Kategorie ${band.bandIndex + 1}`);
+
+    head
+      .selectAll("p.cluster-band-meta")
+      .data([band])
+      .join("p")
+      .attr("class", "cluster-band-meta")
+      .text(
+        `${band.cards.length} von ${state.scenarioCount} Szenarien · Anteil: ${percentage}%`,
+      );
+
+    const distribution = head
+      .selectAll("div.cluster-distribution")
+      .data([band])
+      .join("div")
+      .attr("class", "cluster-distribution")
+      .attr("aria-label", "Anteil dieser Kategorie an allen Szenarien");
+
+    distribution
+      .selectAll("div.cluster-distribution-fill")
+      .data([band])
+      .join("div")
+      .attr("class", "cluster-distribution-fill")
+      .transition()
+      .duration(useContinuity ? 320 : 0)
+      .style("width", `${Math.max(1, percentage)}%`);
+
+    const toggle = section
+      .selectAll("button.cluster-toggle")
+      .data(
+        band.cards.length > CURATED_PREVIEW_LIMIT ? [band] : [],
+        (d) => d.memoryKey,
+      )
+      .join("button")
+      .attr("class", "cluster-toggle")
+      .attr("type", "button")
+      .text(
+        expanded
+          ? "Weniger Szenarien anzeigen"
+          : `Weitere Szenarien anzeigen (${band.cards.length - visibleCount})`,
+      )
+      .on("click", () => {
+        clusterExpansionMemory.set(band.memoryKey, !expanded);
+        renderLandscape(deriveView());
+      });
+
+    toggle
+      .style("opacity", useContinuity ? 0 : 1)
+      .transition()
+      .duration(useContinuity ? 220 : 0)
+      .style("opacity", 1);
+
+    section
+      .selectAll("p.cluster-curation-note")
+      .data([band])
+      .join("p")
+      .attr("class", "cluster-curation-note")
+      .text(
+        `Sichtbar: ${visibleCount} von ${band.cards.length} Szenarien${expanded ? "" : " (kuratierte Vorschau)"}`,
+      );
+
+    const visibleCards = band.cards.slice(0, visibleCount);
+    const rows = Math.max(1, Math.ceil(visibleCards.length / columns));
+    const chartHeight =
+      LAYOUT_TOKENS.framePadding * 2 +
+      rows * frame.height +
+      (rows - 1) * LAYOUT_TOKENS.cardGap;
+
+    const svg = section
+      .selectAll("svg.cluster-card-svg")
+      .data([band])
+      .join("svg")
+      .attr("class", "cluster-card-svg")
+      .attr("width", chartWidth)
+      .attr("height", chartHeight)
+      .attr("viewBox", `0 0 ${chartWidth} ${chartHeight}`)
+      .attr("preserveAspectRatio", "xMinYMin meet");
+
+    const targetPositionById = new Map(
+      visibleCards.map((card, index) => {
+        const col = index % columns;
+        const row = Math.floor(index / columns);
+        const x =
+          LAYOUT_TOKENS.framePadding +
+          col * (frame.width + LAYOUT_TOKENS.cardGap);
+        const y =
+          LAYOUT_TOKENS.framePadding +
+          row * (frame.height + LAYOUT_TOKENS.cardGap);
+        return [card.scenario.id, { x, y }];
+      }),
+    );
+
+    const cards = svg
+      .selectAll("g.card-group")
+      .data(visibleCards, (d) => d.scenario.id)
+      .join(
+        (enter) =>
+          enter
+            .append("g")
+            .attr("class", (d) => cardGroupClass(d.scenario, view))
+            .attr("transform", (d) => {
+              const target = targetPositionById.get(d.scenario.id) ?? {
+                x: 0,
+                y: 0,
+              };
+              if (!useContinuity) {
+                return `translate(${target.x},${target.y})`;
+              }
+              const remembered = clusterPositionMemory.get(d.scenario.id);
+              const startX = remembered?.x ?? target.x;
+              const startY = remembered?.y ?? target.y;
+              return `translate(${startX},${startY})`;
+            })
+            .style("opacity", useContinuity ? 0 : 1),
+        (update) => update,
+        (exit) =>
+          exit
+            .transition()
+            .duration(useContinuity ? 220 : 0)
+            .style("opacity", 0)
+            .remove(),
+      )
+      .attr("class", (d) => cardGroupClass(d.scenario, view));
+
+    cards.each(function clearCardContents() {
+      this.innerHTML = "";
+    });
+
+    drawCardContents(cards, view);
+
+    cards
+      .transition()
+      .duration(useContinuity ? 420 : 0)
+      .ease(d3.easeCubicOut)
+      .attr("transform", (d) => {
+        const target = targetPositionById.get(d.scenario.id) ?? { x: 0, y: 0 };
+        return `translate(${target.x},${target.y})`;
+      })
+      .style("opacity", 1);
+
+    visibleCards.forEach((card) => {
+      const target = targetPositionById.get(card.scenario.id);
+      if (target) {
+        clusterPositionMemory.set(card.scenario.id, target);
+      }
+    });
+  });
+}
+
+function buildClusterMemoryKey(view, band, bandIndex) {
+  const selectedControl = view.controls?.selected ?? "none";
+  const title = band.title ?? `band-${bandIndex}`;
+
+  return [
+    state.task,
+    state.variants.probabilityLayout ?? "standard",
+    selectedControl,
+    title,
+    bandIndex,
+  ].join("|");
 }
 
 function renderBandLandscape(landscape, bands, columns, view) {
@@ -1698,7 +2085,11 @@ function buildGroupedBands(rankedCards, view, titlePrefix) {
     const grouped = d3.group(rankedCards, (entry) =>
       view.customBandTitle(entry.scenario),
     );
-    const order = ["Klare Führung", "Knappes Rennen", "Sonstige"];
+    const order = view.customBandOrder ?? [
+      "Klare Führung",
+      "Knappes Rennen",
+      "Sonstige",
+    ];
 
     return order
       .map((label) => {

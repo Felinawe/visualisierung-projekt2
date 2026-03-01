@@ -5,17 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.42] - 2026-02-28
-
-### Added
-
-- `src/main-test.js`: Neue Innovationsoption `D – Merge von A und C` im Panel `Innovation & Interaktion` ergänzt.
+## [0.4.51] - 2026-03-01
 
 ### Changed
 
-- `src/main-test.js`: Variante D kombiniert den Cluster-Überblick mit sichtbarer Reorganisation der Karten beim Perspektivwechsel (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?`) via Transition.
-- `src/main-test.js`: Cluster-Rendering so erweitert, dass Positionsspeicher für Szenariokarten zwischen Perspektiven genutzt wird, ohne numerische Logik oder Schwellenwerte zu ändern.
-- `index-test.html`: Innovationspanel-Beschreibung auf `Standard, A, B, C und D` aktualisiert.
+- `index-stable.html`, `index-test.html`: Vertikale Abstände zwischen Subheadline, Szenario-Toggle und Summary-Box reduziert (Header-Abstand und Control-Area-Gap/Margin verringert), um den Block kompakter zu machen.
+
+## [0.4.50] - 2026-03-01
+
+### Changed
+
+- `index-stable.html`, `index-test.html`: Box-Optik des Szenario-Toggles entfernt (kein Rahmen/kein Hintergrund), übrige Text- und Interaktionslogik unverändert beibehalten.
+
+## [0.4.49] - 2026-03-01
+
+### Changed
+
+- `src/main-stable.js`, `src/main-test.js`: Szenario-Toggle auf reinen Einzeilentext reduziert (`In x Szenarien ↑/↓`), Overline `Szenarien` entfernt.
+- `index-stable.html`, `index-test.html`: Toggle-Text näher an den Boxrand gesetzt (kleineres Padding), bei erhaltenem kompakten Box-Layout.
+
+## [0.4.48] - 2026-03-01
+
+### Changed
+
+- `src/main-stable.js`, `src/main-test.js`: Separate Überschrift `Szenarien` oberhalb des Controls entfernt; stattdessen kleines Overline-Label direkt im Szenario-Toggle.
+- `index-stable.html`, `index-test.html`: Szenario-Steuerung auf boxloses, minimaleres Layout umgestellt (kleinere Schrift, kein umrahmtes Feld, reduzierte visuelle Fläche).
+
+## [0.4.47] - 2026-03-01
+
+### Changed
+
+- `src/main-stable.js`, `src/main-test.js`: Szenario-Steuerung von Dropdown auf kompakten Toggle umgestellt (`In 100 Szenarien ↑` / `In 1000 Szenarien ↓`) mit Klickwechsel zwischen 100 und 1000.
+- `index-stable.html`, `index-test.html`: Styling für die neue Szenario-Steuerung ergänzt (kleine Label-Zeile über der Box, kompakte Toggle-Fläche).
+
+## [0.4.46] - 2026-02-28
+
+### Fixed
+
+- `src/main-stable.js`: Perspektivspezifisches Clustering in der Stable-D-Ansicht korrigiert, sodass `Wer riskiert 5%?` und `Welche Mehrheiten?` nicht mehr generische Gruppen (`Im Fokus`) zeigen, sondern die Test-äquivalenten Kategorien (`Klares Scheitern`/`Knappes Rennen`/`Sonstige` sowie `Klare Mehrheit`/`Knappe Mehrheit`/`Sonstige`).
+- `src/main-stable.js`: `buildGroupedBands()` auf `customBandOrder` umgestellt, damit jede Perspektive ihre eigene Cluster-Reihenfolge wie in `main-test.js` nutzt.
+
+## [0.4.45] - 2026-02-28
+
+### Changed
+
+- `src/main-stable.js`: Stable-Landschaft auf festes Preset `D – Merge von A und C` umgestellt (Cluster-Überblick mit sichtbarer Reorganisation bei Perspektivwechseln), ohne Variant-UI.
+- `src/main-stable.js`: Kontinuierliches Cluster-Rendering mit persistenter Kartenpositionsspeicherung ergänzt, damit Umordnungen zwischen Perspektiven sowie bei `100`/`1000` sichtbar und nachvollziehbar bleiben.
+- `src/main-stable.js`: Kuratierte Vorschau in Cluster-Bändern (`Weitere Szenarien anzeigen`) als fester Stable-Standard übernommen; Test-Panel-Logik bleibt unverändert in Test.
+
+## [0.4.44] - 2026-02-28
+
+### Changed
+
+- `src/main-test.js`: Test-Einstiegsvorauswahl für `Innovation & Interaktion` auf `D – Merge von A und C` (`concept-d`) gesetzt, damit Test-Entry und Stable-Preset übereinstimmen.
+- `src/main-stable.js`: Innovationsmodus im Stable-Code auf das gewählte Preset (`concept-d`) fest verdrahtet und die dafür obsolet gewordene `innovationPanel`-State-Referenz entfernt.
+
+## [0.4.43] - 2026-02-28
+
+### Added
+
+- `src/main-test.js`: Innovationsoption `D – Merge von A und C` ergänzt (Cluster-Überblick plus Kontinuitäts-Resortierung).
+
+### Changed
+
+- `src/main-test.js`: D so umgesetzt, dass Cluster (`Klares Scheitern`, `Knappes Rennen`, `Klare Mehrheit` etc.) erhalten bleiben und Karten bei Perspektivwechseln sichtbar reorganisieren.
+- `src/main-test.js`: Bei Wechsel der Szenariozahl (`100` ↔ `1000`) in D werden zusätzliche Szenarien sichtbar in die Darstellung eingeblendet statt nur hart neu gezeichnet.
+- `src/main-test.js`: Cluster-Rendering von reinem Rebuild auf persistente, key-basierte Joins erweitert, um kontinuierliche Übergänge zu ermöglichen.
+- `index-test.html`: Innovationspanel-Text auf `Standard, A, B, C und D` aktualisiert.
 
 ## [0.4.41] - 2026-02-28
 

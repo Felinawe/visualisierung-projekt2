@@ -67,7 +67,7 @@ const INNOVATION_VARIANT_GROUP = {
     {
       value: "concept-d",
       label: "D – Merge von A und C",
-      hint: "Cluster-Überblick mit sichtbarer Reorganisation beim Perspektivwechsel.",
+      hint: "Cluster mit sichtbarer Reorganisation bei Perspektivwechsel.",
     },
   ],
 };
@@ -315,7 +315,7 @@ const state = {
   frequencyOrderedScenarios: [],
   parties: [],
   variants: {
-    innovationPanel: "standard",
+    innovationPanel: "concept-d",
     entryNarrative: "leadership-tension",
     layoutStructure: "adaptive-grid",
     controlAreaLayout: "perspective-bridge",
@@ -1524,7 +1524,7 @@ function renderSubControls(view) {
     {
       id: "scenario",
       fieldClass: "control-scenario",
-      label: "Szenarien:",
+      label: "Szenarien",
       options: SCENARIO_OPTIONS,
       selected: state.scenarioCount,
       text: (d) => `${d}`,
@@ -1597,13 +1597,35 @@ function renderSubControls(view) {
       .append("div")
       .attr("class", `control-field ${row.fieldClass}`);
 
-    field.append("label").text(row.label);
+    if (row.id !== "scenario") {
+      field.append("label").text(row.label);
+    }
 
     if (row.id === "context" && activeLayout !== "standard") {
       field
         .append("div")
         .attr("class", "control-context-subtitle")
         .text("Auswahl zur aktiven Perspektive");
+    }
+
+    if (row.id === "scenario") {
+      field
+        .append("button")
+        .attr("type", "button")
+        .attr("class", "scenario-toggle")
+        .attr("aria-label", "Szenariozahl wechseln")
+        .text(
+          `In ${state.scenarioCount} Szenarien ${state.scenarioCount === 100 ? "↑" : "↓"}`,
+        )
+        .on("click", () => {
+          const nextScenarioCount =
+            state.scenarioCount === SCENARIO_OPTIONS[0]
+              ? SCENARIO_OPTIONS[1]
+              : SCENARIO_OPTIONS[0];
+          row.onChange(nextScenarioCount);
+          render();
+        });
+      return;
     }
 
     const select = field.append("select");
@@ -1762,14 +1784,24 @@ function renderInlineFocusComplex(summary, view) {
 
 function renderLandscape(view) {
   const landscape = d3.select("#landscape");
-  const useContinuityResort =
+  const useBandContinuityResort =
     isInnovationConceptA() &&
     state.variants.probabilityLayout !== "frequency-center";
+  const useClusterContinuityResort = isInnovationConceptD();
 
-  if (!useContinuityResort) {
+  if (!useBandContinuityResort && !useClusterContinuityResort) {
     landscape.html("");
     landscapePositionMemory = new Map();
-  } else if (landscape.select("svg.landscape-band-svg").empty()) {
+    clusterPositionMemory = new Map();
+  } else if (
+    useBandContinuityResort &&
+    landscape.select("svg.landscape-band-svg").empty()
+  ) {
+    landscape.html("");
+  } else if (
+    useClusterContinuityResort &&
+    landscape.select("div.cluster-overview").empty()
+  ) {
     landscape.html("");
   }
 
@@ -1805,7 +1837,7 @@ function renderLandscape(view) {
       bands,
       columns,
       view,
-      isInnovationConceptD(),
+      useClusterContinuityResort,
     );
     syncChapterScrollFocus(landscape.node());
     return;
@@ -1839,9 +1871,9 @@ function renderClusteredLandscape(
   view,
   useContinuity = false,
 ) {
-  landscape.html("");
-  landscapePositionMemory = new Map();
   if (!useContinuity) {
+    landscape.html("");
+    landscapePositionMemory = new Map();
     clusterPositionMemory = new Map();
   }
 
@@ -1858,17 +1890,52 @@ function renderClusteredLandscape(
     memoryKey: buildClusterMemoryKey(view, band, bandIndex),
   }));
 
-  const wrapper = landscape.append("div").attr("class", "cluster-overview");
+  const wrapper = useContinuity
+    ? landscape
+        .selectAll("div.cluster-overview")
+        .data([null])
+        .join("div")
+        .attr("class", "cluster-overview")
+    : landscape.append("div").attr("class", "cluster-overview");
 
   const sections = wrapper
     .selectAll("section.cluster-band")
-    .data(preparedBands)
-    .join("section")
+    .data(preparedBands, (d) => d.memoryKey)
+    .join(
+      (enter) =>
+        enter
+          .append("section")
+          .attr("class", "cluster-band")
+          .style("opacity", useContinuity ? 0 : 1)
+          .style("transform", useContinuity ? "translateY(6px)" : "none")
+          .call((selection) => {
+            if (useContinuity) {
+              selection
+                .transition()
+                .duration(260)
+                .style("opacity", 1)
+                .style("transform", "translateY(0)");
+            }
+          }),
+      (update) => update,
+      (exit) =>
+        exit.call((selection) => {
+          if (useContinuity) {
+            selection
+              .transition()
+              .duration(220)
+              .style("opacity", 0)
+              .style("transform", "translateY(-4px)")
+              .remove();
+          } else {
+            selection.remove();
+          }
+        }),
+    )
     .attr("class", "cluster-band");
 
   sections.each(function renderClusterBand(band) {
     const section = d3.select(this);
-    section.html("");
 
     const expanded = clusterExpansionMemory.get(band.memoryKey) === true;
     const visibleCount = expanded
@@ -1878,47 +1945,73 @@ function renderClusteredLandscape(
     const percentage =
       totalCards > 0 ? Math.round((band.cards.length / totalCards) * 100) : 0;
 
-    const head = section.append("div").attr("class", "cluster-band-header");
+    const head = section
+      .selectAll("div.cluster-band-header")
+      .data([band])
+      .join("div")
+      .attr("class", "cluster-band-header");
+
     head
-      .append("h3")
+      .selectAll("h3.cluster-band-title")
+      .data([band])
+      .join("h3")
       .attr("class", "cluster-band-title")
       .text(band.title ?? `Kategorie ${band.bandIndex + 1}`);
 
     head
-      .append("p")
+      .selectAll("p.cluster-band-meta")
+      .data([band])
+      .join("p")
       .attr("class", "cluster-band-meta")
       .text(
         `${band.cards.length} von ${state.scenarioCount} Szenarien · Anteil: ${percentage}%`,
       );
 
     const distribution = head
-      .append("div")
+      .selectAll("div.cluster-distribution")
+      .data([band])
+      .join("div")
       .attr("class", "cluster-distribution")
       .attr("aria-label", "Anteil dieser Kategorie an allen Szenarien");
 
     distribution
-      .append("div")
+      .selectAll("div.cluster-distribution-fill")
+      .data([band])
+      .join("div")
       .attr("class", "cluster-distribution-fill")
+      .transition()
+      .duration(useContinuity ? 320 : 0)
       .style("width", `${Math.max(1, percentage)}%`);
 
-    if (band.cards.length > CURATED_PREVIEW_LIMIT) {
-      section
-        .append("button")
-        .attr("type", "button")
-        .attr("class", "cluster-toggle")
-        .text(
-          expanded
-            ? "Weniger Szenarien anzeigen"
-            : `Weitere Szenarien anzeigen (${band.cards.length - visibleCount})`,
-        )
-        .on("click", () => {
-          clusterExpansionMemory.set(band.memoryKey, !expanded);
-          renderLandscape(deriveView());
-        });
-    }
+    const toggle = section
+      .selectAll("button.cluster-toggle")
+      .data(
+        band.cards.length > CURATED_PREVIEW_LIMIT ? [band] : [],
+        (d) => d.memoryKey,
+      )
+      .join("button")
+      .attr("class", "cluster-toggle")
+      .attr("type", "button")
+      .text(
+        expanded
+          ? "Weniger Szenarien anzeigen"
+          : `Weitere Szenarien anzeigen (${band.cards.length - visibleCount})`,
+      )
+      .on("click", () => {
+        clusterExpansionMemory.set(band.memoryKey, !expanded);
+        renderLandscape(deriveView());
+      });
+
+    toggle
+      .style("opacity", useContinuity ? 0 : 1)
+      .transition()
+      .duration(useContinuity ? 220 : 0)
+      .style("opacity", 1);
 
     section
-      .append("p")
+      .selectAll("p.cluster-curation-note")
+      .data([band])
+      .join("p")
       .attr("class", "cluster-curation-note")
       .text(
         `Sichtbar: ${visibleCount} von ${band.cards.length} Szenarien${expanded ? "" : " (kuratierte Vorschau)"}`,
@@ -1932,63 +2025,17 @@ function renderClusteredLandscape(
       (rows - 1) * LAYOUT_TOKENS.cardGap;
 
     const svg = section
-      .append("svg")
+      .selectAll("svg.cluster-card-svg")
+      .data([band])
+      .join("svg")
       .attr("class", "cluster-card-svg")
       .attr("width", chartWidth)
       .attr("height", chartHeight)
       .attr("viewBox", `0 0 ${chartWidth} ${chartHeight}`)
       .attr("preserveAspectRatio", "xMinYMin meet");
 
-    const cards = svg
-      .selectAll("g.card-group")
-      .data(visibleCards)
-      .join("g")
-      .attr("class", (d) => cardGroupClass(d.scenario, view))
-      .attr("transform", (d, index) => {
-        const col = index % columns;
-        const row = Math.floor(index / columns);
-        const targetX =
-          LAYOUT_TOKENS.framePadding +
-          col * (frame.width + LAYOUT_TOKENS.cardGap);
-        const targetY =
-          LAYOUT_TOKENS.framePadding +
-          row * (frame.height + LAYOUT_TOKENS.cardGap);
-
-        if (useContinuity) {
-          const remembered = clusterPositionMemory.get(d.scenario.id);
-          const startX = remembered?.x ?? targetX;
-          const startY = remembered?.y ?? targetY;
-          return `translate(${startX},${startY})`;
-        }
-
-        return `translate(${targetX},${targetY})`;
-      });
-
-    cards.each(function clearCardContents() {
-      this.innerHTML = "";
-    });
-
-    drawCardContents(cards, view);
-
-    if (useContinuity) {
-      cards
-        .transition()
-        .duration(420)
-        .ease(d3.easeCubicOut)
-        .attr("transform", (_, index) => {
-          const col = index % columns;
-          const row = Math.floor(index / columns);
-          const x =
-            LAYOUT_TOKENS.framePadding +
-            col * (frame.width + LAYOUT_TOKENS.cardGap);
-          const y =
-            LAYOUT_TOKENS.framePadding +
-            row * (frame.height + LAYOUT_TOKENS.cardGap);
-          return `translate(${x},${y})`;
-        })
-        .style("opacity", 1);
-
-      visibleCards.forEach((card, index) => {
+    const targetPositionById = new Map(
+      visibleCards.map((card, index) => {
         const col = index % columns;
         const row = Math.floor(index / columns);
         const x =
@@ -1997,9 +2044,64 @@ function renderClusteredLandscape(
         const y =
           LAYOUT_TOKENS.framePadding +
           row * (frame.height + LAYOUT_TOKENS.cardGap);
-        clusterPositionMemory.set(card.scenario.id, { x, y });
-      });
-    }
+        return [card.scenario.id, { x, y }];
+      }),
+    );
+
+    const cards = svg
+      .selectAll("g.card-group")
+      .data(visibleCards, (d) => d.scenario.id)
+      .join(
+        (enter) =>
+          enter
+            .append("g")
+            .attr("class", (d) => cardGroupClass(d.scenario, view))
+            .attr("transform", (d) => {
+              const target = targetPositionById.get(d.scenario.id) ?? {
+                x: 0,
+                y: 0,
+              };
+              if (!useContinuity) {
+                return `translate(${target.x},${target.y})`;
+              }
+              const remembered = clusterPositionMemory.get(d.scenario.id);
+              const startX = remembered?.x ?? target.x;
+              const startY = remembered?.y ?? target.y;
+              return `translate(${startX},${startY})`;
+            })
+            .style("opacity", useContinuity ? 0 : 1),
+        (update) => update,
+        (exit) =>
+          exit
+            .transition()
+            .duration(useContinuity ? 220 : 0)
+            .style("opacity", 0)
+            .remove(),
+      )
+      .attr("class", (d) => cardGroupClass(d.scenario, view));
+
+    cards.each(function clearCardContents() {
+      this.innerHTML = "";
+    });
+
+    drawCardContents(cards, view);
+
+    cards
+      .transition()
+      .duration(useContinuity ? 420 : 0)
+      .ease(d3.easeCubicOut)
+      .attr("transform", (d) => {
+        const target = targetPositionById.get(d.scenario.id) ?? { x: 0, y: 0 };
+        return `translate(${target.x},${target.y})`;
+      })
+      .style("opacity", 1);
+
+    visibleCards.forEach((card) => {
+      const target = targetPositionById.get(card.scenario.id);
+      if (target) {
+        clusterPositionMemory.set(card.scenario.id, target);
+      }
+    });
   });
 }
 
@@ -2009,7 +2111,6 @@ function buildClusterMemoryKey(view, band, bandIndex) {
 
   return [
     state.task,
-    state.scenarioCount,
     state.variants.probabilityLayout ?? "standard",
     selectedControl,
     title,
