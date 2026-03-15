@@ -357,7 +357,7 @@ These criteria function as conceptual guidelines. Their weighting may vary depen
 
 ## 9. Relationship to Other Project Files
 
-### visualisierung-kontext.md
+### context.md
 
 - Defines objectives, attitude, and methodological framework
 - Is conceptually leading and normative

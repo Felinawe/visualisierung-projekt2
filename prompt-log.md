@@ -3396,4 +3396,23 @@ Therefore implement the following timeline data from 28.02.2025 - 28.02.2026:
 
 ---
 
+### 75. Start/Baseline-Umbenennung und Kontextdatei-Rename
+
+**Model:** GPT-5.3-Codex
+
+**Request:** kannst du main-start.js und index-start.html in main-baseline.js und index-baseline.html umbenennen und das auch in allen referenzen ändern (Icopilot-instructions.md; Visualization Context & framework.md). Bennenne auch Visualization Context & framework.md in context.md. Auch Referenzen dementsprechend anpassen
+
+**Action:**
+
+- ✅ Dateien umbenannt: `src/main-start.js` → `src/main-baseline.js`, `index-start.html` → `index-baseline.html`, `Dok/Visualization Context & Framework.md` → `Dok/context.md`.
+- ✅ Script-Referenz in `index-baseline.html` auf `./src/main-baseline.js` aktualisiert.
+- ✅ Referenzen in `.github/copilot-instructions.md` auf `Dok/context.md`, `index-baseline.html` und `main-baseline.js` umgestellt.
+- ✅ Referenzen in `.github/prompts/Understanding & Correctness.prompt.md`, `.github/prompts/Overall Impression & Layout.prompt.md`, `.github/prompts/Innovation and Interaction Design.prompt.md` und `.github/prompts/Journalistic Added Value.prompt.md` entsprechend angepasst.
+- ✅ Interne Abschnittsüberschrift in `Dok/context.md` von `visualisierung-kontext.md` auf `context.md` geändert.
+- ✅ `changelog.md` mit PATCH-Eintrag `0.4.61` ergänzt.
+
+**Status:** ⏸ Pending Approval (accept/reject)
+
+---
+
 **Append Anchor:** Do not remove this line. New entries are inserted above it.

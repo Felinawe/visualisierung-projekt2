@@ -23,7 +23,7 @@ This is a controlled refinement phase.
 
 ## Anchor: Binding Rules (Do not restate — enforce)
 
-All work in this iteration must comply with the **Overall Impression & Layout** section and general practices in `copilot-instructions.md` and must remain consistent with the project’s conceptual framework in `Dok/Visualization Context & Framework.md`, specifically:
+All work in this iteration must comply with the **Overall Impression & Layout** section and general practices in `copilot-instructions.md` and must remain consistent with the project’s conceptual framework in `Dok/context.md`, specifically:
 
 - In `copilot-instructions.md`:
   - **Colour & Design System (BINDING)**
@@ -31,7 +31,7 @@ All work in this iteration must comply with the **Overall Impression & Layout** 
   - **Data Authority & Dataset Integrity (MANDATORY)**
   - **Start, Stable vs Test Environment (ARCHITECTURE RULE)**
 
-- In `Dok/Visualization Context & Framework.md`:
+- In `Dok/context.md`:
   - The visualization’s role as a journalistic explanatory tool
   - The scenario-card landscape concept (consistency and comparability across tasks/states)
   - The fixed task structure (Task 1–3) as the interpretive framework

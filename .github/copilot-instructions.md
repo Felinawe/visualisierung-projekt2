@@ -60,7 +60,7 @@ If assumptions are necessary, make them explicit and ask for confirmation before
 
 ## Conceptual Project Context (AUTHORITATIVE)
 
-This project follows a fixed conceptual and methodological framework documented in: `Dok/Visualization Context & Framework.md`:
+This project follows a fixed conceptual and methodological framework documented in: `Dok/context.md`:
 
 - The visualization’s role as a journalistic explanatory tool
 - The scenario-micocart landscape concept/small multiples (consistency and comparability across tasks/states)
@@ -260,7 +260,7 @@ https://<user>.github.io/<repo>/
 These rules apply to all entrypoints and their corresponding JS modules:
 
 - `index-stable.html` + `main-stable.js`
-- `index-start.html` + `main-start.js`
+- `index-baseline.html` + `main-baseline.js`
 - `index-test.html` + `main-test.js`
 
 ---
@@ -311,7 +311,7 @@ const poll = await d3.json(pollUrl);
 
 There are three environments:
 
-- **Start** → Baseline version: `index-start.html` + `main-start.js`
+- **Start** → Baseline version: `index-baseline.html` + `main-baseline.js`
 - **Test** → Variant exploration system: `index-test*.html` + `main-test*.js`
 - **Stable** → Approved production version: `index-stable.html` + `main-stable.js`
 
@@ -434,7 +434,7 @@ All panels must follow the same visual and structural pattern.
 ### 3) “Standard” = Start Baseline (Binding Definition)
 
 - The FIRST option in every panel MUST be named **Standard**.
-- “Standard” ALWAYS represents the behavior defined in `index-start.html` / `main-start.js`.
+- “Standard” ALWAYS represents the behavior defined in `index-baseline.html` / `main-baseline.js`.
 - It does NOT represent the current stable version.
 - It does NOT shift over time.
 - It is not dynamic.
