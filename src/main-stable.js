@@ -228,7 +228,7 @@ function renderHeader() {
 
   const title = isNarrativeFlow
     ? (view.headerTitle ??
-      "Bundestagswahl 2025: Die politische Lage im Szenarienvergleich")
+      "Bundestagswahl 2025: Die politische Lage im Simulationenvergleich")
     : isJournalistic
       ? "Bundestagswahl 2025: Bandbreite möglicher Ergebnisse"
       : "Bundestagswahl-Simulator: mögliche Wahlausgänge";
@@ -610,7 +610,7 @@ function task1View() {
 
   const closeRace = selectedLeads
     .filter((scenario) => scenario.leadMargin <= LEAD_MARGIN_CLEAR_MIN)
-    .sort((a, b) => a.leadMargin - b.leadMargin);
+    .sort((a, b) => b.leadMargin - a.leadMargin);
 
   const others = state.scenarios
     .filter((scenario) => scenario.firstParty !== selected)
@@ -657,8 +657,8 @@ function task1View() {
 
   if (isNarrativeFlow) {
     const notLeading = state.scenarioCount - selectedCount;
-    const flowHeadline = `${partyName(selected)} führt in ${selectedCount} von ${state.scenarioCount} Szenarien.`;
-    const flowDetail = `${closeRace.length} Szenarien bleiben ein enges Duell. In ${notLeading} Szenarien liegt eine andere Partei vorn.`;
+    const flowHeadline = `${partyName(selected)} liegt in ${selectedCount} von ${state.scenarioCount} Simulationen klar vorne.`;
+    const flowDetail = `${closeRace.length} Simulationen bleiben ein enges Duell. In ${notLeading} Simulationen liegt eine andere Partei vorn.`;
 
     return {
       title: "",
@@ -667,8 +667,7 @@ function task1View() {
       detail: flowDetail,
       headerTitle: "Union liegt vorn, AfD dicht auf den Fersen",
       headerEyebrow: "Wenn am Sonntag Bundestagswahl wäre",
-      headerSubtitle:
-        "Viele Szenarien bleiben knapp – schon kleine Verschiebungen können die Reihenfolge an der Spitze ändern.",
+      headerSubtitle: `Umfragen sind Momentaufnahmen und beruhen auf Stichproben. Schon kleine Schwankungen können die Positionierung an der Spitze ändern. Deshalb zeigt die Grafik ${state.scenarioCount} Simulationen möglicher Wahlausgänge auf Grundlage aktueller Umfragen.`,
       ordered,
       highlight: (d) => d.firstParty === selected,
       cardText: (d) => {
@@ -813,7 +812,7 @@ function task2bView() {
       : editorialDetail;
 
   if (isNarrativeFlow) {
-    const flowHeadline = `${partyName(selected)} bleibt in ${belowCount} von ${state.scenarioCount} Szenarien unter der 5%-Hürde.`;
+    const flowHeadline = `${partyName(selected)} bleibt in ${belowCount} von ${state.scenarioCount} Simulationen unter der 5%-Hürde.`;
 
     return {
       title: "",
@@ -822,8 +821,7 @@ function task2bView() {
       detail: "",
       headerTitle: "FDP und BSW drohen an der 5%-Hürde zu scheitern",
       headerEyebrow: "Wenn am Sonntag Bundestagswahl wäre",
-      headerSubtitle:
-        "Rund um die Fünf-Prozent-Marke entscheidet sich, welche Stimmen später parlamentarische Wirkung entfalten.",
+      headerSubtitle: `Umfragen sind Momentaufnahmen und beruhen auf Stichproben. Rund um die Fünf-Prozent-Marke entscheidet sich, welche Stimmen später parlamentarische Wirkung entfalten. Deshalb zeigt die Grafik ${state.scenarioCount} Simulationen möglicher Wahlausgänge auf Grundlage aktueller Umfragen.`,
       ordered,
       highlight: (d) => isBelowThreshold(d, selected),
       cardText: (d) => {
@@ -996,7 +994,7 @@ function task3View() {
       : editorialDetail;
 
   if (isNarrativeFlow) {
-    const flowHeadline = `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Szenarien eine parlamentarische Mehrheit.`;
+    const flowHeadline = `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Simulationen eine parlamentarische Mehrheit.`;
 
     return {
       title: "",
@@ -1005,8 +1003,7 @@ function task3View() {
       detail: "",
       headerTitle: "Kenia-Koalition gilt aktuell als besonders wahrscheinlich",
       headerEyebrow: "Wenn am Sonntag Bundestagswahl wäre",
-      headerSubtitle:
-        "Ob eine Koalition regieren kann, entscheidet sich häufig an knappen Sitzabständen zur Mehrheit.",
+      headerSubtitle: `Umfragen sind Momentaufnahmen und beruhen auf Stichproben. Ob eine Koalition regieren kann, entscheidet sich häufig an knappen Sitzabständen zur Mehrheit. Deshalb zeigt die Grafik ${state.scenarioCount} Simulationen möglicher Wahlausgänge auf Grundlage aktueller Umfragen.`,
       ordered,
       highlight: (d) => coalitionMajority(d, coalition.parties),
       cardText: (d) => {
@@ -1189,13 +1186,14 @@ function renderSubControls(view) {
     }
 
     if (row.id === "scenario") {
+      const isNarrativeFlow = isNarrativeFlowLanguage();
       field
         .append("button")
         .attr("type", "button")
         .attr("class", "scenario-toggle")
         .attr("aria-label", "Szenariozahl wechseln")
         .text(
-          `In ${state.scenarioCount} Szenarien ${state.scenarioCount === 100 ? "↑" : "↓"}`,
+          `In ${state.scenarioCount} ${isNarrativeFlow ? "Simulationen" : "Szenarien"} ${state.scenarioCount === 100 ? "↑" : "↓"}`,
         )
         .on("click", () => {
           const nextScenarioCount =
@@ -1261,7 +1259,9 @@ function renderSummary(view) {
       .style("margin-top", "8px")
       .style("color", "var(--text-main)")
       .text(
-        "Die Anordnung zeigt die Häufigkeit über alle Szenarien. Die aktuelle Auswahl hebt passende Szenarien hervor, ohne die Reihenfolge zu ändern.",
+        isNarrativeFlow
+          ? "Die Anordnung zeigt die Häufigkeit über alle Simulationen. Die aktuelle Auswahl hebt passende Simulationen hervor, ohne die Reihenfolge zu ändern."
+          : "Die Anordnung zeigt die Häufigkeit über alle Szenarien. Die aktuelle Auswahl hebt passende Szenarien hervor, ohne die Reihenfolge zu ändern.",
       );
   }
 
@@ -1366,6 +1366,9 @@ function renderLandscape(view) {
   const rankedCards = rankCards(ordered);
 
   if (useClusterContinuityResort) {
+    const scenarioTerm = isNarrativeFlowLanguage()
+      ? "Simulationen"
+      : "Szenarien";
     const probabilityLayout = state.variants.probabilityLayout;
     const bands =
       probabilityLayout === "frequency-zones"
@@ -1373,7 +1376,7 @@ function renderLandscape(view) {
         : probabilityLayout === "frequency-center"
           ? [
               {
-                title: "Häufigkeit über alle Szenarien",
+                title: `Häufigkeit über alle ${scenarioTerm}`,
                 cards: rankedCards,
               },
             ]
@@ -1412,6 +1415,8 @@ function renderClusteredLandscape(
   view,
   useContinuity = false,
 ) {
+  const scenarioTerm = isNarrativeFlowLanguage() ? "Simulationen" : "Szenarien";
+
   if (!useContinuity) {
     landscape.html("");
     clusterPositionMemory = new Map();
@@ -1504,7 +1509,7 @@ function renderClusteredLandscape(
       .join("p")
       .attr("class", "cluster-band-meta")
       .text(
-        `${band.cards.length} von ${state.scenarioCount} Szenarien · Anteil: ${percentage}%`,
+        `${band.cards.length} von ${state.scenarioCount} ${scenarioTerm} · Anteil: ${percentage}%`,
       );
 
     const distribution = head
@@ -1512,7 +1517,7 @@ function renderClusteredLandscape(
       .data([band])
       .join("div")
       .attr("class", "cluster-distribution")
-      .attr("aria-label", "Anteil dieser Kategorie an allen Szenarien");
+      .attr("aria-label", `Anteil dieser Kategorie an allen ${scenarioTerm}`);
 
     distribution
       .selectAll("div.cluster-distribution-fill")
@@ -1534,8 +1539,8 @@ function renderClusteredLandscape(
       .attr("type", "button")
       .text(
         expanded
-          ? "Weniger Szenarien anzeigen"
-          : `Weitere Szenarien anzeigen (${band.cards.length - visibleCount})`,
+          ? `Weniger ${scenarioTerm} anzeigen`
+          : `Weitere ${scenarioTerm} anzeigen (${band.cards.length - visibleCount})`,
       )
       .on("click", () => {
         clusterExpansionMemory.set(band.memoryKey, !expanded);
@@ -1554,7 +1559,7 @@ function renderClusteredLandscape(
       .join("p")
       .attr("class", "cluster-curation-note")
       .text(
-        `Sichtbar: ${visibleCount} von ${band.cards.length} Szenarien${expanded ? "" : " (kuratierte Vorschau)"}`,
+        `Sichtbar: ${visibleCount} von ${band.cards.length} ${scenarioTerm}${expanded ? "" : " (kuratierte Vorschau)"}`,
       );
 
     const visibleCards = band.cards.slice(0, visibleCount);
@@ -2081,6 +2086,8 @@ function rankCards(orderedScenarios) {
 }
 
 function buildGroupedBands(rankedCards, view, titlePrefix) {
+  const scenarioTerm = isNarrativeFlowLanguage() ? "Simulationen" : "Szenarien";
+
   if (!titlePrefix && view.customBandTitle) {
     const grouped = d3.group(rankedCards, (entry) =>
       view.customBandTitle(entry.scenario),
@@ -2125,8 +2132,8 @@ function buildGroupedBands(rankedCards, view, titlePrefix) {
     return [
       {
         title: titlePrefix
-          ? `${titlePrefix} · Weitere Szenarien (${remainingCards.length})`
-          : `Weitere Szenarien (${remainingCards.length})`,
+          ? `${titlePrefix} · Weitere ${scenarioTerm} (${remainingCards.length})`
+          : `Weitere ${scenarioTerm} (${remainingCards.length})`,
         cards: remainingCards,
       },
     ];
@@ -2152,8 +2159,8 @@ function buildGroupedBands(rankedCards, view, titlePrefix) {
     },
     {
       title: titlePrefix
-        ? `${titlePrefix} · Weitere Szenarien (${remainingCards.length})`
-        : `Weitere Szenarien (${remainingCards.length})`,
+        ? `${titlePrefix} · Weitere ${scenarioTerm} (${remainingCards.length})`
+        : `Weitere ${scenarioTerm} (${remainingCards.length})`,
       cards: remainingCards,
     },
   ];

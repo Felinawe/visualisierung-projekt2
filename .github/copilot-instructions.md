@@ -301,6 +301,7 @@ Inside `main-*.js`, load local files like this:
 ```js
 const pollUrl = new URL("./data/poll-data.json", import.meta.url);
 const poll = await d3.json(pollUrl);
+```
 
 ---
 
@@ -612,6 +613,7 @@ Before finalizing wording, structure, layout, or interaction logic:
 - Every new interaction must create a recognizable new understanding (not just movement). If it doesn’t add interpretive value, remove it.
 
 - Maintain state discipline: interactions must have clear feedback, reversible states, and must not create contradictory signals across Task 1–3.
+
 ## Threshold Communication Rule (MANDATORY)
 
 Critical reference values (such as electoral thresholds or majority requirements) must be both textually and—where interpretively relevant—visually accessible.
@@ -663,4 +665,7 @@ Requirements:
 - Avoid ambiguity about the reference set or baseline.
 
 This rule prevents misinterpretation of partial counts as totals and ensures transparency about what is being measured.
+
+```
+
 ```

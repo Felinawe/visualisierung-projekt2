@@ -223,7 +223,7 @@ function renderHeader() {
 
   const title = isNarrativeFlow
     ? (view.headerTitle ??
-      "Bundestagswahl 2025: Die politische Lage im Szenarienvergleich")
+      "Bundestagswahl 2025: Die politische Lage im Simulationenvergleich")
     : isJournalistic
       ? "Bundestagswahl 2025: Bandbreite möglicher Ergebnisse"
       : "Bundestagswahl-Simulator: mögliche Wahlausgänge";
@@ -605,7 +605,7 @@ function task1View() {
 
   const closeRace = selectedLeads
     .filter((scenario) => scenario.leadMargin <= LEAD_MARGIN_CLEAR_MIN)
-    .sort((a, b) => a.leadMargin - b.leadMargin);
+    .sort((a, b) => b.leadMargin - a.leadMargin);
 
   const others = state.scenarios
     .filter((scenario) => scenario.firstParty !== selected)
@@ -633,27 +633,27 @@ function task1View() {
     : "Wer liegt vorn?";
   const headline = isJournalistic
     ? `In ${selectedCount} von ${state.scenarioCount} möglichen Wahlausgängen liegt ${partyName(selected)} an der Spitze.`
-    : `${partyName(selected)} liegt in ${selectedCount} von ${state.scenarioCount} Szenarien vorne.`;
+    : `${partyName(selected)} liegt in ${selectedCount} von ${state.scenarioCount} Simulationen vorne.`;
 
   let detail = isJournalistic
-    ? `Davon zeigen ${clearLead.length} Szenarien eine klare Führung und ${closeRace.length} ein knappes Rennen.`
-    : `Klare Führung: ${clearLead.length} von ${state.scenarioCount} Szenarien. Knappes Rennen: ${closeRace.length} von ${state.scenarioCount} Szenarien.`;
+    ? `Davon zeigen ${clearLead.length} Simulationen eine klare Führung und ${closeRace.length} ein knappes Rennen.`
+    : `Klare Führung: ${clearLead.length} von ${state.scenarioCount} Simulationen. Knappes Rennen: ${closeRace.length} von ${state.scenarioCount} Simulationen.`;
 
   if (isJournalistic && narrative === "leadership-tension") {
-    detail = `${closeRace.length} Szenarien zeigen ein enges Führungsduell. Diese knappen Führungen stehen zuerst, danach die klareren Vorsprünge.`;
+    detail = `${closeRace.length} Simulationen zeigen ein enges Führungsduell. Diese knappen Führungen stehen zuerst, danach die klareren Vorsprünge.`;
   }
 
   if (isExtended) {
     const notLeading = state.scenarioCount - selectedCount;
     detail = isJournalistic
-      ? `${clearLead.length} Szenarien zeigen eine klare Führung, ${closeRace.length} ein knappes Rennen und ${notLeading} liegen bei anderen führenden Parteien. Die Karten bleiben innerhalb der Gruppen nachvollziehbar geordnet.`
+      ? `${clearLead.length} Simulationen zeigen eine klare Führung, ${closeRace.length} ein knappes Rennen und ${notLeading} liegen bei anderen führenden Parteien. Die Karten bleiben innerhalb der Gruppen nachvollziehbar geordnet.`
       : `Klare Führung: ${clearLead.length} von ${state.scenarioCount}, Knappes Rennen: ${closeRace.length} von ${state.scenarioCount}. Sonstige: ${notLeading} von ${state.scenarioCount}. Innerhalb der Gruppen bleibt die Sortierung politisch nachvollziehbar.`;
   }
 
   if (isNarrativeFlow) {
     const notLeading = state.scenarioCount - selectedCount;
-    const flowHeadline = `${partyName(selected)} führt in ${selectedCount} von ${state.scenarioCount} Szenarien.`;
-    const flowDetail = `${closeRace.length} Szenarien bleiben ein enges Duell. In ${notLeading} Szenarien liegt eine andere Partei vorn.`;
+    const flowHeadline = `${partyName(selected)} führt in ${selectedCount} von ${state.scenarioCount} Simulationen.`;
+    const flowDetail = `${closeRace.length} Simulationen bleiben ein enges Duell. In ${notLeading} Simulationen liegt eine andere Partei vorn.`;
 
     return {
       title: "",
@@ -663,7 +663,7 @@ function task1View() {
       headerTitle: "Union liegt vorn, AfD dicht auf den Fersen",
       headerEyebrow: "Wenn am Sonntag Bundestagswahl wäre",
       headerSubtitle:
-        "Viele Szenarien bleiben knapp – schon kleine Verschiebungen können die Reihenfolge an der Spitze ändern.",
+        "Viele Simulationen bleiben knapp – schon kleine Verschiebungen können die Reihenfolge an der Spitze ändern.",
       ordered,
       highlight: (d) => d.firstParty === selected,
       cardText: (d) => {
@@ -789,14 +789,14 @@ function task2bView() {
   const isExtended =
     state.variants.explanationDepth === "extended-transparency";
 
-  let detail = `${aboveCount} Szenarien liegen darüber. Die Sortierung zeigt zuerst die klaren Unterschreitungen, danach die knappen Fälle über 5%.`;
+  let detail = `${aboveCount} Simulationen liegen darüber. Die Sortierung zeigt zuerst die klaren Unterschreitungen, danach die knappen Fälle über 5%.`;
 
   if (narrative === "risk-start") {
-    detail = `${aboveCount} Szenarien liegen darüber. Im Fokus stehen zuerst die knappsten Fälle rund um die 5%-Hürde.`;
+    detail = `${aboveCount} Simulationen liegen darüber. Im Fokus stehen zuerst die knappsten Fälle rund um die 5%-Hürde.`;
   }
 
   if (isExtended) {
-    detail = `${aboveCount} Szenarien liegen darüber. Vorne: Szenarien unter 5%, sortiert nach Abstand zur Hürde. Hinten: Szenarien über 5%, ebenfalls nach Abstand.`;
+    detail = `${aboveCount} Simulationen liegen darüber. Vorne: Simulationen unter 5%, sortiert nach Abstand zur Hürde. Hinten: Simulationen über 5%, ebenfalls nach Abstand.`;
   }
 
   const title = isJournalistic
@@ -804,20 +804,20 @@ function task2bView() {
     : "Wer rutscht unter 5%?";
 
   const headline = isJournalistic
-    ? `${partyName(selected)} bleibt in ${belowCount} von ${state.scenarioCount} Szenarien unter der 5%-Hürde.`
-    : `${partyName(selected)} liegt in ${belowCount} von ${state.scenarioCount} Szenarien unter 5%.`;
+    ? `${partyName(selected)} bleibt in ${belowCount} von ${state.scenarioCount} Simulationen unter der 5%-Hürde.`
+    : `${partyName(selected)} liegt in ${belowCount} von ${state.scenarioCount} Simulationen unter 5%.`;
 
   const editorialDetail = isExtended
-    ? `${aboveCount} Szenarien liegen darüber. Oben stehen die klaren Unterschreitungen, darunter die knappen Fälle über der Hürde.`
-    : `${aboveCount} Szenarien liegen darüber. Die Reihenfolge zeigt zuerst klare Unterschreitungen, danach knappe Fälle über der Hürde.`;
+    ? `${aboveCount} Simulationen liegen darüber. Oben stehen die klaren Unterschreitungen, darunter die knappen Fälle über der Hürde.`
+    : `${aboveCount} Simulationen liegen darüber. Die Reihenfolge zeigt zuerst klare Unterschreitungen, danach knappe Fälle über der Hürde.`;
 
   const narrativeEditorialDetail =
     narrative === "risk-start"
-      ? `${aboveCount} Szenarien liegen darüber. Oben stehen die knappsten Fälle an der 5%-Hürde, damit Kippmomente sofort sichtbar werden.`
+      ? `${aboveCount} Simulationen liegen darüber. Oben stehen die knappsten Fälle an der 5%-Hürde, damit Kippmomente sofort sichtbar werden.`
       : editorialDetail;
 
   if (isNarrativeFlow) {
-    const flowHeadline = `${partyName(selected)} bleibt in ${belowCount} von ${state.scenarioCount} Szenarien unter der 5%-Hürde.`;
+    const flowHeadline = `${partyName(selected)} bleibt in ${belowCount} von ${state.scenarioCount} Simulationen unter der 5%-Hürde.`;
 
     return {
       title: "",
@@ -933,7 +933,7 @@ function task3View() {
         : "Welche Mehrheiten sind möglich?",
       headline: isJournalistic
         ? "In dieser Auswahl erreicht derzeit kein zulässiges Bündnis eine parlamentarische Mehrheit."
-        : "Keine der zulässigen Koalitionen erreicht in diesen Szenarien eine Mehrheit.",
+        : "Keine der zulässigen Koalitionen erreicht in diesen Simulationen eine Mehrheit.",
       detail: isJournalistic
         ? "Wählen Sie ein anderes Bündnis oder ändern Sie die Szenariozahl, um weitere Konstellationen zu prüfen."
         : "Wählen Sie eine andere Perspektive oder ändern Sie die Szenariozahl.",
@@ -975,15 +975,15 @@ function task3View() {
   const noMajority = state.scenarioCount - majorityCount;
 
   let detail =
-    "Vorne stehen Szenarien mit Mehrheit. Innerhalb der Gruppen sortiert die Ansicht nach klaren bzw. knappen Mehrheiten.";
+    "Vorne stehen Simulationen mit Mehrheit. Innerhalb der Gruppen sortiert die Ansicht nach klaren bzw. knappen Mehrheiten.";
 
   if (narrative === "majority-start") {
     detail =
-      "Vorne stehen Szenarien mit Mehrheit. Innerhalb der Gruppen erscheinen zuerst die knappsten Mehrheiten und knappsten Fehlmehrheiten.";
+      "Vorne stehen Simulationen mit Mehrheit. Innerhalb der Gruppen erscheinen zuerst die knappsten Mehrheiten und knappsten Fehlmehrheiten.";
   }
 
   if (isExtended) {
-    detail = `${noMajority} Szenarien erreichen keine Mehrheit. Vorne: Szenarien mit Mehrheit, sortiert nach Sitzüberschuss. Hinten: fehlende Mehrheiten, sortiert nach Abstand. Gezeigt werden realistische Koalitionen. AfD-Bündnisse und Union+LINKE-Konstellationen sind ausgeschlossen.`;
+    detail = `${noMajority} Simulationen erreichen keine Mehrheit. Vorne: Simulationen mit Mehrheit, sortiert nach Sitzüberschuss. Hinten: fehlende Mehrheiten, sortiert nach Abstand. Gezeigt werden realistische Koalitionen. AfD-Bündnisse und Union+LINKE-Konstellationen sind ausgeschlossen.`;
   }
 
   const title = isJournalistic
@@ -991,20 +991,20 @@ function task3View() {
     : "Welche Mehrheiten sind möglich?";
 
   const headline = isJournalistic
-    ? `${coalition.label} kommt in ${majorityCount} von ${state.scenarioCount} Szenarien auf eine parlamentarische Mehrheit.`
-    : `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Szenarien eine Mehrheit.`;
+    ? `${coalition.label} kommt in ${majorityCount} von ${state.scenarioCount} Simulationen auf eine parlamentarische Mehrheit.`
+    : `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Simulationen eine Mehrheit.`;
 
   const editorialDetail = isExtended
-    ? `${noMajority} Szenarien bleiben ohne Mehrheit. Oben stehen Mehrheiten mit dem größten Sitzpuffer, darunter Konstellationen knapp unter der Mehrheit.`
+    ? `${noMajority} Simulationen bleiben ohne Mehrheit. Oben stehen Mehrheiten mit dem größten Sitzpuffer, darunter Konstellationen knapp unter der Mehrheit.`
     : "Die Karten zeigen zuerst Konstellationen mit Mehrheit und danach die Fälle, in denen das Bündnis knapp darunter bleibt.";
 
   const narrativeEditorialDetail =
     narrative === "majority-start"
-      ? `${noMajority} Szenarien bleiben ohne Mehrheit. Im Fokus stehen zuerst die knappsten Mehrheiten und knappsten Fehlmehrheiten, weil sie politisch besonders entscheidend sind.`
+      ? `${noMajority} Simulationen bleiben ohne Mehrheit. Im Fokus stehen zuerst die knappsten Mehrheiten und knappsten Fehlmehrheiten, weil sie politisch besonders entscheidend sind.`
       : editorialDetail;
 
   if (isNarrativeFlow) {
-    const flowHeadline = `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Szenarien eine parlamentarische Mehrheit.`;
+    const flowHeadline = `${coalition.label} erreicht in ${majorityCount} von ${state.scenarioCount} Simulationen eine parlamentarische Mehrheit.`;
 
     return {
       title: "",
@@ -1115,7 +1115,7 @@ function renderSubControls(view) {
     {
       id: "scenario",
       fieldClass: "control-scenario",
-      label: "Szenarien:",
+      label: "Simulationen:",
       options: SCENARIO_OPTIONS,
       selected: state.scenarioCount,
       text: (d) => `${d}`,
@@ -1241,7 +1241,7 @@ function renderSummary(view) {
       .style("margin-top", "6px")
       .style("color", "var(--text-muted)")
       .text(
-        `Basis: ${state.scenarioCount} von ${state.totalScenarioBase} festen Referenzszenarien (deterministisch).`,
+        `Basis: ${state.scenarioCount} von ${state.totalScenarioBase} festen Referenzsimulationen (deterministisch).`,
       );
   }
 
@@ -1251,7 +1251,7 @@ function renderSummary(view) {
       .style("margin-top", "8px")
       .style("color", "var(--text-main)")
       .text(
-        "Die Anordnung zeigt die Häufigkeit über alle Szenarien. Die aktuelle Auswahl hebt passende Szenarien hervor, ohne die Reihenfolge zu ändern.",
+        "Die Anordnung zeigt die Häufigkeit über alle Simulationen. Die aktuelle Auswahl hebt passende Simulationen hervor, ohne die Reihenfolge zu ändern.",
       );
   }
 
@@ -1829,8 +1829,8 @@ function buildGroupedBands(rankedCards, view, titlePrefix) {
     return [
       {
         title: titlePrefix
-          ? `${titlePrefix} · Weitere Szenarien (${remainingCards.length})`
-          : `Weitere Szenarien (${remainingCards.length})`,
+          ? `${titlePrefix} · Weitere Simulationen (${remainingCards.length})`
+          : `Weitere Simulationen (${remainingCards.length})`,
         cards: remainingCards,
       },
     ];
@@ -1856,8 +1856,8 @@ function buildGroupedBands(rankedCards, view, titlePrefix) {
     },
     {
       title: titlePrefix
-        ? `${titlePrefix} · Weitere Szenarien (${remainingCards.length})`
-        : `Weitere Szenarien (${remainingCards.length})`,
+        ? `${titlePrefix} · Weitere Simulationen (${remainingCards.length})`
+        : `Weitere Simulationen (${remainingCards.length})`,
       cards: remainingCards,
     },
   ];

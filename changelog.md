@@ -5,6 +5,92 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.60] - 2026-03-02
+
+### Fixed
+
+- `src/main-test-vorlage.js`: Bei fehlenden täglichen `averages` wird die Szenario-Streuung nicht mehr künstlich auf `0.12` begrenzt, sondern aus `ci_lower/ci_upper` der Fallback-Daten abgeleitet. Dadurch entstehen wieder plausible Führungswechsel (inkl. AfD-Führungen) statt faktisch deterministischer Union-Führung in allen Szenarien.
+
+## [0.4.59] - 2026-03-02
+
+### Fixed
+
+- `src/main-test-vorlage.js`: In `Wer riskiert 5%?` die Bandzuordnung auf denselben gerundeten Abstand (1 Nachkommastelle) wie in der Kartenanzeige umgestellt, damit angezeigte `2,0` konsequent als `Knappes Rennen` statt `Klares Scheitern` klassifiziert wird.
+- `src/main-vorlage-archiv.js`: Gleiche Rundungs-/Bandlogik für den Archivstand synchronisiert.
+
+## [0.4.58] - 2026-03-02
+
+### Fixed
+
+- `src/main-test-vorlage.js`: Bandlogik in `Wer riskiert 5%?` korrigiert: `Klares Scheitern` gilt jetzt nur bei mehr als 2,0 Prozentpunkten unter 5%; `Knappes Rennen` gilt für alle Fälle bis einschließlich 2,0 Prozentpunkte unter 5%.
+- `src/main-vorlage-archiv.js`: Gleiche Grenzwertkorrektur für die 5%-Bandlogik im Archivstand umgesetzt.
+
+## [0.4.57] - 2026-03-02
+
+### Changed
+
+- `src/main-test-vorlage.js`: Dateninitialisierung von festen Referenzszenarien auf deterministisch generierte Szenarien aus Jahresmittelwerten (`averages`, Zeitraum 28.02.2025–28.02.2026) umgestellt; Koalitions-, Schwellen- und Panel-Logik unverändert beibehalten.
+- `src/main-test-vorlage.js`: Parteikenngrößen (`avg`, `ciLower`, `ciUpper`, `diff`) werden jetzt direkt aus den täglichen Zeitreihen abgeleitet und als Basis für die Szenariogenerierung verwendet.
+- `src/main-test-vorlage.js`: Narrative Texte/Overline dynamisiert; Overline auf `Neue Dynamiken ein Jahr nach der Bundestagswahl` gesetzt und task-spezifische Headertexte aus aktiver Auswahl und Szenariozählung erzeugt.
+- `src/main-test-vorlage.js`: Vorlagenmodus deaktiviert (`TEMPLATE_MODE = false`), damit Karten, Fokus-Komplex und Narrative vollständig datengetrieben arbeiten.
+- `index-test-vorlage.html`: Statische Platzhalterbezeichnungen im Header/Panel entfernt und auf datenbezogene Testdarstellung aktualisiert.
+- `data/poll-data-vorlage.json`: Auf realen Timeline-Datensatz umgestellt und Metadaten um `timeline` (Start/Ende) sowie `timestamp: 2026-02-28` ergänzt.
+
+## [0.4.56] - 2026-03-02
+
+### Changed
+
+- `src/main-test-vorlage.js`, `src/main-vorlage-archiv.js`: Summary-Titel-Platzhalter `Platzhalter: Wer führt?/Wer riskiert 5%?/Welche Mehrheiten?` entfernt.
+- `src/main-test-vorlage.js`, `src/main-vorlage-archiv.js`: Badge-Texte von `Platzhalter: ...` auf neutrale Kurzlabels (`Führungsbild`, `5%-Hürde`, `Mehrheitsbild`) umgestellt.
+- `src/main-test-vorlage.js`, `src/main-vorlage-archiv.js`: Header-Overline und Header-Titel im Vorlagenmodus auf perspektivspezifische Platzhaltertexte gesetzt (je Auswahl `Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?`).
+
+## [0.4.55] - 2026-03-02
+
+### Changed
+
+- `src/main-test-vorlage.js`, `src/main-vorlage-archiv.js`: Cluster-Titel im Vorlagenmodus auf Platzhalter ohne numerische Counts umgestellt (inkl. Gruppenbänder in allen drei Perspektiven).
+- `src/main-test-vorlage.js`, `src/main-vorlage-archiv.js`: Szenario-Kartenwortlaut auf aufgabenbezogene Platzhalter vereinheitlicht (`Wer führt?`, `Wer riskiert 5%?`, `Welche Mehrheiten?`) ohne konkrete Zahlenangaben (`Prozentpunkte`, `Sitze`).
+- `src/main-test-vorlage.js`, `src/main-vorlage-archiv.js`: Fokus-Komplex im Vorlagenmodus in allen Perspektiven mit vollständigen Auswahloptionen aktiviert (Parteien + Koalitionsoptionen gemäß Koalitionsregeln); außerhalb Vorlagenmodus bleibt die bestehende datengestützte Filterung erhalten.
+- `src/main-test-vorlage.js`, `src/main-vorlage-archiv.js`: Header im Vorlagenmodus auf Overline+Headline+Subheadline-Platzhalter im gleichen Layoutmuster wie Test umgestellt.
+- `src/main-test-vorlage.js`, `src/main-vorlage-archiv.js`: Cluster-Meta-/Curation-Texte und Toggle-Beschriftungen im Vorlagenmodus auf datenneutrale Platzhalter ohne Counts umgestellt.
+
+## [0.4.54] - 2026-03-02
+
+### Added
+
+- `index-vorlage-archiv.html` als Archivkopie der Vorlagen-HTML erstellt.
+- `src/main-vorlage-archiv.js` als Archivkopie der Vorlagen-JS erstellt.
+- `data/poll-data-vorlage-archiv.json` als Archivkopie der Vorlagen-Daten erstellt.
+
+### Changed
+
+- `index-vorlage-archiv.html`: Script-Referenz auf `./src/main-vorlage-archiv.js` gesetzt.
+- `src/main-vorlage-archiv.js`: Datenpfad auf `../data/poll-data-vorlage-archiv.json` gesetzt.
+- `data/poll-data-vorlage-archiv.json`: `metadata.template_entrypoints` auf die Archivdateien umgestellt.
+
+## [0.4.53] - 2026-03-02
+
+### Changed
+
+- `src/main-test-vorlage.js`: Vorlagen-Vorauswahl für `Häufigkeitsanordnung` auf `Standard` zurückgesetzt (`probabilityLayout: standard`).
+- `src/main-test-vorlage.js`: Vorlagen-Vorauswahl für `Mikrochart-Darstellung` auf `Standard` zurückgesetzt (`microchartDisplay: standard`).
+- `src/main-test-vorlage.js`: Szenario-Karten im Vorlagenmodus auf reine Platzhalterdarstellung umgestellt (keine datengetriebene Kartenbeschriftung, keine datengetriebenen Tooltip-Werte, keine datenbasierten Schwellenmarker).
+
+## [0.4.52] - 2026-03-02
+
+### Added
+
+- `index-test-vorlage.html` als wiederverwendbarer Test-Template-Entrypoint ergänzt.
+- `src/main-test-vorlage.js` als eigenständige Vorlagen-Logik ergänzt (identische Panel-/UI-Struktur, data-ready Scaffold).
+- `data/poll-data-vorlage.json` als strukturgleiche Datengrundlage mit 1000 Referenzszenarien für `spd/cxu/gru/fdp/afd/lin/bsw` ergänzt.
+
+### Changed
+
+- `index-test-vorlage.html`: Script-Referenz auf `./src/main-test-vorlage.js` gesetzt und Vorlagen-Headlines/-Hinweise als Platzhalter für spätere Dateneinspielung ergänzt.
+- `src/main-test-vorlage.js`: Datenquelle auf `../data/poll-data-vorlage.json` umgestellt.
+- `src/main-test-vorlage.js`: In allen Variantengruppen konkrete (nicht-`Standard`) Vorauswahl gesetzt (`probabilityLayout: frequency-zones`, `microchartDisplay: compact-icons`, übrige wie bestehende Test-Vorauswahl).
+- `src/main-test-vorlage.js`: Header- und Summary-Texte im Vorlagenmodus als journalistisch strukturierte Platzhalter vorbereitet; Szenario-/Kartenberechnungslogik bleibt unverändert.
+
 ## [0.4.51] - 2026-03-01
 
 ### Changed
