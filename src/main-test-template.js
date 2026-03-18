@@ -340,7 +340,7 @@ init();
 
 async function init() {
   const pollUrl = new URL(
-    "../data/poll-data-vorlage-archiv.json",
+    "../data/poll-data-template.json",
     import.meta.url,
   );
   const poll = await d3.json(pollUrl);

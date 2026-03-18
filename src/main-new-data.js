@@ -348,7 +348,7 @@ let clusterPositionMemory = new Map();
 init();
 
 async function init() {
-  const pollUrl = new URL("../data/poll-data-vorlage.json", import.meta.url);
+  const pollUrl = new URL("../data/poll-data-new-data.json", import.meta.url);
   const poll = await d3.json(pollUrl);
   const annualStats = buildAnnualPartyStats(poll);
 

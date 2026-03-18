@@ -1,0 +1,113 @@
+{
+  "metadata": {
+    "election_year": null,
+    "timestamp": "YYYY-MM-DD",
+    "template_entrypoints": {
+      "html": "./index-test-template.html",
+      "module": "./src/main-test-template.js"
+    },
+    "template_notes": [
+      "Blanko-Musterdatei ohne feste inhaltliche Wahldaten.",
+      "Neue Datensaetze werden in 'data' eingetragen.",
+      "Optional koennen deterministische Referenzszenarien unter 'simulation_reference.scenarios' hinterlegt werden.",
+      "Parteischluessel in metadata.parties und data.party muessen uebereinstimmen."
+    ],
+    "parties": [
+      {
+        "key": "spd",
+        "name": "SPD"
+      },
+      {
+        "key": "cxu",
+        "name": "Union"
+      },
+      {
+        "key": "gru",
+        "name": "Gruene"
+      },
+      {
+        "key": "fdp",
+        "name": "FDP"
+      },
+      {
+        "key": "afd",
+        "name": "AfD"
+      },
+      {
+        "key": "lin",
+        "name": "Linke"
+      },
+      {
+        "key": "bsw",
+        "name": "BSW"
+      }
+    ],
+    "polls_num": 0,
+    "polls_hash": ""
+  },
+  "data": [
+    {
+      "party": "spd",
+      "avg": 0,
+      "ci_lower": 0,
+      "ci_upper": 0,
+      "prev_result": 0,
+      "diff": 0
+    },
+    {
+      "party": "cxu",
+      "avg": 0,
+      "ci_lower": 0,
+      "ci_upper": 0,
+      "prev_result": 0,
+      "diff": 0
+    },
+    {
+      "party": "gru",
+      "avg": 0,
+      "ci_lower": 0,
+      "ci_upper": 0,
+      "prev_result": 0,
+      "diff": 0
+    },
+    {
+      "party": "fdp",
+      "avg": 0,
+      "ci_lower": 0,
+      "ci_upper": 0,
+      "prev_result": 0,
+      "diff": 0
+    },
+    {
+      "party": "afd",
+      "avg": 0,
+      "ci_lower": 0,
+      "ci_upper": 0,
+      "prev_result": 0,
+      "diff": 0
+    },
+    {
+      "party": "lin",
+      "avg": 0,
+      "ci_lower": 0,
+      "ci_upper": 0,
+      "prev_result": 0,
+      "diff": 0
+    },
+    {
+      "party": "bsw",
+      "avg": 0,
+      "ci_lower": 0,
+      "ci_upper": 0,
+      "prev_result": 0,
+      "diff": 0
+    }
+  ],
+  "simulation_reference": {
+    "source": "template:simulation_reference.scenarios",
+    "total_scenarios": 0,
+    "total_seats": 630,
+    "threshold_rule": "Parties at or above 5 percent receive seats; parties below 5 percent receive 0 seats.",
+    "scenarios": []
+  }
+}
